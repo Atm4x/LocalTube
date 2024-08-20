@@ -1,0 +1,22 @@
+{
+  "name": "localtube",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^31.4.0",
+    "music-metadata": "^10.2.0"
+  },
+  "dependencies": {
+    "ffprobe-static": "^3.1.0",
+    "fluent-ffmpeg": "^2.1.3",
+    "moment": "^2.30.1",
+    "plyr": "^3.7.8"
+  }
+}
