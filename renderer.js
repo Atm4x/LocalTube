@@ -24,7 +24,10 @@ const player = new Plyr(videoPlayer, {
     controls: [
         'play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'
     ],
-    settings: ['captions', 'quality', 'speed', 'loop']
+    settings: ['captions', 'quality', 'speed', 'loop'],
+    previewThumbnails: {
+        enabled: false,
+    }
 });
 
 selectFileBtn.addEventListener('click', () => {
@@ -40,7 +43,10 @@ ipcRenderer.on('selected-file', async (event, filePath) => {
         player.source = {
             type: 'video',
             sources: [{ src: filePath, type: 'video/mp4' }],
-            previewThumbnails: { src: './thumbnails/output.vtt' },  // Ensure this path is correct relative to your HTML file
+            previewThumbnails: { 
+                enabled: true,
+                src: './thumbnails/output.vtt' 
+            },
         };
         player.play();
     } catch (error) {
@@ -106,8 +112,6 @@ themeToggle.addEventListener('change', toggleTheme);
 
 async function generateThumbnails(videoPath) {
     const thumbnailPrefix = 'thumbs';
-    const width = 160;
-    const height = 90;
     const interval = 8; // Interval between thumbnails in seconds
     const col = 5; // Number of thumbnails per row in the sprite
     const row = 5; // Number of thumbnails per column in the sprite
@@ -118,7 +122,7 @@ async function generateThumbnails(videoPath) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    // Get video duration
+    // Get video metadata including resolution
     const metadata = await new Promise((resolve, reject) => {
         ffmpeg.ffprobe(videoPath, (err, metadata) => {
             if (err) reject(err);
@@ -127,8 +131,21 @@ async function generateThumbnails(videoPath) {
     });
 
     const duration = Math.floor(metadata.format.duration); // Total duration of the video in seconds
+    const videoWidth = metadata.streams[0].width; // Video width
+    const videoHeight = metadata.streams[0].height; // Video height
+    const aspectRatio = videoWidth / videoHeight; // Calculate aspect ratio
+
+    console.log(`Video Resolution: ${videoWidth}x${videoHeight}`);
+    console.log(`Aspect Ratio: ${aspectRatio}`);
+
+    // Assume fixed height (e.g., 90px) and calculate width based on aspect ratio
+    const height = 100;
+    const width = Math.floor(height * aspectRatio);
+
+    console.log(`Thumbnail Resolution: ${width}x${height}`);
+
     const totalImages = Math.floor(duration / interval); // Total number of thumbnails
-    const totalSprites = Math.ceil(totalImages / (row * col)); // Total number of sprite sheets
+    const totalSprites = Math.ceil(totalImages / (row * col)); 
 
     let thumbOutput = 'WEBVTT\n\n';
     let startTime = moment('00:00:00', 'HH:mm:ss.SSS');
@@ -184,23 +201,23 @@ async function generateThumbnails(videoPath) {
             });
 
             const inputs = inputFiles.map((_, index) => `[${index}:v]`).join('');
-const layout = generateLayout(col, row);
+            const layout = generateLayout(col, row);
 
-command
-    .complexFilter([
-        `${inputs}xstack=inputs=${inputFiles.length}:layout=${layout}[out]`
-    ])
-    .outputOptions(['-frames:v', '1', '-map', '[out]']) // Output a single frame and map the output
-    .output(spritePath)
-    .on('start', commandLine => console.log(`Started FFmpeg with command: ${commandLine}`))
-    .on('end', resolve)
-    .on('error', (err, stdout, stderr) => {
-        console.error('FFmpeg error:', stderr);
-        reject(err);
-    })
-    .run();
+            command
+                .complexFilter([
+                    `${inputs}xstack=inputs=${inputFiles.length}:layout=${layout}[out]`
+                ])
+                .outputOptions(['-frames:v', '1', '-map', '[out]']) // Output a single frame and map the output
+                .output(spritePath)
+                .on('start', commandLine => console.log(`Started FFmpeg with command: ${commandLine}`))
+                .on('end', resolve)
+                .on('error', (err, stdout, stderr) => {
+                    console.error('FFmpeg error:', stderr);
+                    reject(err);
+                })
+                .run();
         });
-
+                
         // Clean up individual thumbnails
         inputFiles.forEach(file => {
             if (fs.existsSync(file)) {
@@ -208,10 +225,9 @@ command
             }
         });
     }
-
     // Write the VTT file with references to the sprite sheets
     fs.writeFileSync(path.join(outputDir, 'output.vtt'), thumbOutput);
-
+            
     console.log('Thumbnail generation and VTT creation complete.');
     function generateLayout(col, row) {
         let layout = [];
@@ -223,7 +239,7 @@ command
         return layout.join('|');
     }
 }
-
+    
 
 
 // Функция для генерации случайных рекомендаций
