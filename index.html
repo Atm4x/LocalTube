@@ -9,19 +9,17 @@
 </head>
 <body>
     <header>
-        <div class="logo">LocalTube</div>
+        <div class="logo" id="back-button">LocalTube</div>
         <div class="search-container">
             <input type="text" id="search" placeholder="Поиск...">
         </div>
         <div class="header-buttons">
             <button id="select-file">Выберите файл</button>
-            <label class="switch">
-                <input type="checkbox" id="theme-toggle">
-                <span class="slider round"></span>
-            </label>
+            <button id="settings-button">⚙️</button>
+            <button id="index-button">INDX</button>
         </div>
     </header>
-    
+
     <main>
         <div class="video-container">
             <div id="player-container">
@@ -44,11 +42,10 @@
             </div>
         </div>
         <div class="recommendations">
-            <h2>Рекомендованные видео</h2>
-            <div id="recommended-videos"></div>
+            <h2>Индексированные видео</h2>
+            <div id="video-list" class="video-list"></div>
         </div>
     </main>
-    
     <script src="renderer.js"></script>
 </body>
 </html>

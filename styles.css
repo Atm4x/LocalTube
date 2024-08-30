@@ -266,3 +266,44 @@ main {
         width: 100%;
     }
 }
+
+.settings-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+#folder-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#folder-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--card-bg);
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+#folder-list li button {
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#add-folder {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+

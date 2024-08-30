@@ -4,12 +4,11 @@ const ffprobe = require('ffprobe-static');
 const ffmpeg = require('fluent-ffmpeg');
 const moment = require('moment');
 
-
-
 const fs = require('fs');
 const path = require('path');
 
 ffmpeg.setFfprobePath(ffprobe.path);
+ipcRenderer.send('index-videos');
 
 const videoPlayer = document.getElementById('video-player');
 const selectFileBtn = document.getElementById('select-file');
@@ -17,7 +16,10 @@ const videoTitle = document.getElementById('video-title');
 const videoMeta = document.getElementById('video-meta');
 const descriptionText = document.getElementById('description-text');
 const showMoreBtn = document.getElementById('show-more');
-const themeToggle = document.getElementById('theme-toggle');
+const settingsButton = document.getElementById('settings-button');
+const backButton = document.getElementById('back-button');
+const videoList = document.getElementById('video-list');
+const indexButton = document.getElementById('index-button');
 
 // Plyr initialization
 const player = new Plyr(videoPlayer, {
@@ -34,6 +36,14 @@ selectFileBtn.addEventListener('click', () => {
     ipcRenderer.send('open-file-dialog');
 });
 
+backButton.addEventListener('click', () => {
+    ipcRenderer.send('back-to-main');
+});
+
+indexButton.addEventListener('click', () => {
+    ipcRenderer.send('index-videos');
+});
+
 ipcRenderer.on('selected-file', async (event, filePath) => {
     videoPlayer.src = filePath;
     try {
@@ -43,9 +53,9 @@ ipcRenderer.on('selected-file', async (event, filePath) => {
         player.source = {
             type: 'video',
             sources: [{ src: filePath, type: 'video/mp4' }],
-            previewThumbnails: { 
+            previewThumbnails: {
                 enabled: true,
-                src: './thumbnails/output.vtt' 
+                src: './thumbnails/output.vtt'
             },
         };
         player.play();
@@ -98,17 +108,9 @@ showMoreBtn.addEventListener('click', () => {
     showMoreBtn.textContent = isExpanded ? 'Show more' : 'Show less';
 });
 
-function toggleTheme() {
-    document.body.classList.toggle('dark-theme');
-    localStorage.setItem('dark-theme', document.body.classList.contains('dark-theme'));
-}
-
 if (localStorage.getItem('dark-theme') === 'true') {
     document.body.classList.add('dark-theme');
-    themeToggle.checked = true;
 }
-
-themeToggle.addEventListener('change', toggleTheme);
 
 async function generateThumbnails(videoPath) {
     const thumbnailPrefix = 'thumbs';
@@ -145,7 +147,7 @@ async function generateThumbnails(videoPath) {
     console.log(`Thumbnail Resolution: ${width}x${height}`);
 
     const totalImages = Math.floor(duration / interval); // Total number of thumbnails
-    const totalSprites = Math.ceil(totalImages / (row * col)); 
+    const totalSprites = Math.ceil(totalImages / (row * col));
 
     let thumbOutput = 'WEBVTT\n\n';
     let startTime = moment('00:00:00', 'HH:mm:ss.SSS');
@@ -217,7 +219,7 @@ async function generateThumbnails(videoPath) {
                 })
                 .run();
         });
-                
+
         // Clean up individual thumbnails
         inputFiles.forEach(file => {
             if (fs.existsSync(file)) {
@@ -227,7 +229,7 @@ async function generateThumbnails(videoPath) {
     }
     // Write the VTT file with references to the sprite sheets
     fs.writeFileSync(path.join(outputDir, 'output.vtt'), thumbOutput);
-            
+
     console.log('Thumbnail generation and VTT creation complete.');
     function generateLayout(col, row) {
         let layout = [];
@@ -239,81 +241,41 @@ async function generateThumbnails(videoPath) {
         return layout.join('|');
     }
 }
-    
 
+settingsButton.addEventListener('click', () => {
+    ipcRenderer.send('open-settings');
+});
 
-// Функция для генерации случайных рекомендаций
-function generateRecommendations() {
-    const recommendations = [
-        { title: "Amazing Nature Documentary", channel: "Nature Channel", views: "1.2M views" },
-        { title: "Top 10 Travel Destinations", channel: "Travel Guru", views: "800K views" },
-        { title: "Easy Cooking Recipes", channel: "Chef's Kitchen", views: "500K views" },
-        { title: "Latest Tech Innovations", channel: "Tech Today", views: "2M views" },
-        { title: "Relaxing Music Compilation", channel: "Chill Vibes", views: "3.5M views" },
-        { title: "Extreme Sports Highlights", channel: "Adrenaline Junkies", views: "1.5M views" }
-    ];
-
-    const recommendedVideosContainer = document.getElementById('recommended-videos');
-    recommendedVideosContainer.innerHTML = '';
-
-    recommendations.forEach(video => {
-        const videoCard = document.createElement('div');
-        videoCard.className = 'video-card';
-        videoCard.innerHTML = `
-            <img src="https://via.placeholder.com/160x90" alt="${video.title}">
+ipcRenderer.on('video-list', (event, videos) => {
+    videoList.innerHTML = '';
+    videos.forEach(video => {
+        const videoItem = document.createElement('div');
+        videoItem.className = 'video-card';
+        videoItem.innerHTML = `
+            <img src="https://via.placeholder.com/160x90" alt="${path.basename(video)}">
             <div class="video-card-info">
-                <div class="video-card-title">${video.title}</div>
-                <div class="video-card-meta">${video.channel} • ${video.views}</div>
+                <div class="video-card-title">${path.basename(video)}</div>
+                <div class="video-card-meta">${path.dirname(video)}</div>
             </div>
         `;
-        recommendedVideosContainer.appendChild(videoCard);
-    });
-}
-
-// Генерация рекомендаций при загрузке страницы
-generateRecommendations();
-
-// Дополнительные обработчики событий для кнопок лайка, дизлайка и поделиться
-document.getElementById('like').addEventListener('click', () => {
-    console.log('Liked video');
-});
-
-document.getElementById('dislike').addEventListener('click', () => {
-    console.log('Disliked video');
-});
-
-document.getElementById('share').addEventListener('click', () => {
-    console.log('Shared video');
-});
-
-// Добавляем обработчик событий для клавиатуры
-document.addEventListener('keydown', (event) => {
-    switch (event.code) {
-        case 'ArrowLeft': // Отмотка назад на 5 секунд
-            player.currentTime = Math.max(player.currentTime - 5, 0);
-            event.preventDefault();
-            break;
-        case 'ArrowRight': // Прокрутка вперед на 5 секунд
-            player.currentTime = Math.min(player.currentTime + 5, player.duration);
-            event.preventDefault();
-            break;
-        case 'Space': // Пауза/запуск воспроизведения
-            if (player.playing) {
-                player.pause();
-            } else {
-                player.play();
+        videoItem.addEventListener('click', async () => {
+            videoPlayer.src = video;
+            try {
+                await loadVideoMetadata(video);
+                await generateThumbnails(video);
+        
+                player.source = {
+                    type: 'video',
+                    sources: [{ src: video, type: 'video/mp4' }],
+                    previewThumbnails: {
+                        enabled: true,
+                        src: './thumbnails/output.vtt'
+                    },
+                };
+            } catch (error) {
+                console.error('Error loading video:', error);
             }
-            event.preventDefault(); // Предотвращает прокрутку страницы при нажатии пробела
-            break;
-        case 'ArrowUp': // Увеличение громкости
-            player.volume = Math.min(player.volume + 0.1, 1);
-            event.preventDefault();
-            break;
-        case 'ArrowDown': // Уменьшение громкости
-            player.volume = Math.max(player.volume - 0.1, 0);
-            event.preventDefault();
-            break;
-        default:
-            break;
-    }
+        });
+        videoList.appendChild(videoItem);
+    });
 });

@@ -1,8 +1,13 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { indexVideos } = require('./videoIndexer');
 const path = require('path');
+const fs = require('fs');
+
+let mainWindow;
+let indexedFolders = [];
 
 function createWindow() {
-    const win = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
         webPreferences: {
@@ -14,9 +19,9 @@ function createWindow() {
         }
     });
 
-    win.setMenu(null); 
-    win.loadFile('index.html');
-    win.webContents.openDevTools();
+    mainWindow.setMenu(null);
+    mainWindow.loadFile('index.html');
+    mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {
@@ -27,6 +32,12 @@ app.whenReady().then(() => {
             createWindow();
         }
     });
+
+    // Load settings from settings.json
+    const settingsPath = path.join(app.getPath('userData'), 'settings.json');
+    if (fs.existsSync(settingsPath)) {
+        indexedFolders = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    }
 });
 
 app.on('window-all-closed', () => {
@@ -49,3 +60,46 @@ ipcMain.on('open-file-dialog', (event) => {
         console.log(err);
     });
 });
+
+ipcMain.on('open-settings', () => {
+    mainWindow.loadFile('settings.html');
+});
+
+ipcMain.on('back-to-main', () => {
+    mainWindow.loadFile('index.html');
+});
+
+ipcMain.on('get-folders', (event) => {
+    event.reply('load-folders', indexedFolders);
+});
+
+ipcMain.on('add-folder', (event) => {
+    dialog.showOpenDialog({
+        properties: ['openDirectory']
+    }).then(result => {
+        if (!result.canceled) {
+            const newFolder = result.filePaths[0];
+            if (!indexedFolders.includes(newFolder)) {
+                indexedFolders.push(newFolder);
+                saveSettings();
+                event.reply('load-folders', indexedFolders);
+            }
+        }
+    });
+});
+
+ipcMain.on('remove-folder', (event, folder) => {
+    indexedFolders = indexedFolders.filter(f => f !== folder);
+    saveSettings();
+    event.reply('load-folders', indexedFolders);
+});
+
+ipcMain.on('index-videos', (event) => {
+    const videos = indexVideos(indexedFolders);
+    event.reply('video-list', videos);
+});
+
+function saveSettings() {
+    const settingsPath = path.join(app.getPath('userData'), 'settings.json');
+    fs.writeFileSync(settingsPath, JSON.stringify(indexedFolders, null, 2));
+}
