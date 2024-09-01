@@ -1,6 +1,8 @@
 const { ipcRenderer } = require('electron');
 const path = require('path');
 
+const ffmpeg = require('fluent-ffmpeg');
+
 const videoGrid = document.getElementById('video-grid');
 const settingsButton = document.getElementById('settings-button');
 const indexButton = document.getElementById('index-button');
@@ -39,13 +41,28 @@ function displayVideos(videos) {
     videos.forEach(video => {
         const videoCard = document.createElement('div');
         videoCard.className = 'video-card';
+
+        // Generate thumbnail
+        const thumbnail = document.createElement('img');
+        ffmpeg(video)
+            .screenshots({
+                count: 1,
+                folder: './thumbnails',
+                filename: path.basename(video) + '.png',
+                size: '240x135'
+            })
+            .on('end', function() {
+                thumbnail.src = './thumbnails/' + path.basename(video) + '.png';
+            });
+
         videoCard.innerHTML = `
-            <img src="https://via.placeholder.com/240x135" alt="${path.basename(video)}">
             <div class="video-card-info">
                 <div class="video-card-title">${path.basename(video)}</div>
                 <div class="video-card-meta">${path.dirname(video)}</div>
             </div>
         `;
+        videoCard.insertBefore(thumbnail, videoCard.firstChild);
+
         videoCard.addEventListener('click', () => {
             ipcRenderer.send('open-video', video);
         });
