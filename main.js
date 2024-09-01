@@ -46,21 +46,6 @@ app.on('window-all-closed', () => {
     }
 });
 
-ipcMain.on('open-file-dialog', (event) => {
-    dialog.showOpenDialog({
-        properties: ['openFile'],
-        filters: [
-            { name: 'Videos', extensions: ['mp4', 'webm', 'mkv', 'avi', 'mp3', 'wav', 'ogg'] }
-        ]
-    }).then(result => {
-        if (!result.canceled) {
-            event.reply('selected-file', result.filePaths[0]);
-        }
-    }).catch(err => {
-        console.log(err);
-    });
-});
-
 ipcMain.on('open-settings', () => {
     mainWindow.loadFile('settings.html');
 });
@@ -97,6 +82,13 @@ ipcMain.on('remove-folder', (event, folder) => {
 ipcMain.on('index-videos', (event) => {
     const videos = indexVideos(indexedFolders);
     event.reply('video-list', videos);
+});
+
+ipcMain.on('open-video', (event, videoPath) => {
+    mainWindow.loadFile('player.html');
+    mainWindow.webContents.on('did-finish-load', () => {
+        mainWindow.webContents.send('load-video', videoPath);
+    });
 });
 
 function saveSettings() {

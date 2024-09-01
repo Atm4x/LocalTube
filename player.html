@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalTube - Video Player</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css">
+</head>
+<body>
+    <header>
+        <button id="back-button" class="logo">LocalTube</button>
+        <div class="search-container">
+            <input type="text" id="search" placeholder="Search videos...">
+        </div>
+        <div class="header-buttons">
+            <button id="settings-button">⚙️</button>
+            <label class="switch">
+                <input type="checkbox" id="theme-toggle">
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </header>
+
+    <main>
+        <div class="video-container">
+            <div id="player-container">
+                <video id="video-player" controls></video>
+            </div>
+            <div class="video-info">
+                <h1 id="video-title"></h1>
+                <div id="video-meta"></div>
+                <div class="actions">
+                    <button id="like-button">Лайк</button>
+                    <button id="dislike-button">Дизлайк</button>
+                    <button id="share-button">Поделиться</button>
+                </div>
+                <div id="video-description">
+                    <p id="description-text"></p>
+                    <button id="show-more">Показать больше</button>
+                </div>
+            </div>
+        </div>
+        <div class="recommendations">
+            <h2>Рекомендуемые видео</h2>
+            <div id="video-list" class="video-list"></div>
+        </div>
+    </main>
+
+    <script src="https://cdn.plyr.io/3.6.8/plyr.polyfilled.js"></script>
+    <script src="player.js"></script>
+</body>
+</html>
