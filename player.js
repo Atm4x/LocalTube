@@ -76,7 +76,12 @@ function loadVideoMetadata(filePath) {
             const videoStream = metadata.streams.find(stream => stream.codec_type === 'video');
             const audioStreams = metadata.streams.filter(stream => stream.codec_type === 'audio');
 
-            videoTitle.textContent = path.basename(filePath) || 'Unknown title';
+            // Используем заголовок из метаданных, если он есть, иначе используем имя файла
+            const title = metadata.format.tags && metadata.format.tags.title 
+                ? metadata.format.tags.title 
+                : path.basename(filePath, path.extname(filePath));
+
+            videoTitle.textContent = title;
             videoMeta.textContent = `${metadata.format.format_name || 'Unknown format'} • ${formatBitrate(metadata.format.bit_rate)}`;
             descriptionText.textContent = metadata.format.tags ? (metadata.format.tags.comment || 'Description unavailable') : 'Description unavailable';
 
@@ -86,7 +91,8 @@ function loadVideoMetadata(filePath) {
                     label: `Audio ${index + 1}`,
                     srclang: stream.tags ? stream.tags.language : 'Unknown',
                     default: index === 0,
-                }))
+                })),
+                title: title
             });
         });
     });

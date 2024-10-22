@@ -6,6 +6,9 @@ const fs = require('fs');
 let mainWindow;
 let indexedFolders = [];
 
+const VideoDownloader = require('./downloader');
+const downloader = new VideoDownloader();
+
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1200,
@@ -23,6 +26,7 @@ function createWindow() {
     mainWindow.loadFile('index.html');
     mainWindow.webContents.openDevTools();
 }
+
 
 app.whenReady().then(() => {
     createWindow();
@@ -80,7 +84,8 @@ ipcMain.on('remove-folder', (event, folder) => {
 });
 
 ipcMain.on('index-videos', (event) => {
-    const videos = indexVideos(indexedFolders);
+    const downloadPath = path.join(process.cwd(), 'downloads');
+    const videos = indexVideos([downloadPath]);
     event.reply('video-list', videos);
 });
 
@@ -91,7 +96,30 @@ ipcMain.on('open-video', (event, videoPath) => {
     });
 });
 
+ipcMain.handle('get-video-info', async (event, videoUrl) => {
+    try {
+        return await downloader.getVideoInfo(videoUrl);
+    } catch (error) {
+        throw error;
+    }
+});
+
+ipcMain.handle('download-video', async (event, { videoUrl, videoFormat, audioFormat }) => {
+    try {
+        const result = await downloader.downloadVideo(videoUrl, videoFormat, audioFormat);
+        
+        // После успешной загрузки обновляем список видео
+        const videos = indexVideos(indexedFolders);
+        event.sender.send('video-list', videos);
+        
+        return result;
+    } catch (error) {
+        throw error;
+    }
+});
+
 function saveSettings() {
     const settingsPath = path.join(app.getPath('userData'), 'settings.json');
     fs.writeFileSync(settingsPath, JSON.stringify(indexedFolders, null, 2));
 }
+

@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
+
 function indexVideos(folders) {
     let videos = [];
     const videoExtensions = ['.mp4', '.webm', '.mkv', '.avi', '.mov', '.flv'];
@@ -8,7 +9,7 @@ function indexVideos(folders) {
     folders.forEach(folder => {
         const files = walkSync(folder);
         files.forEach(file => {
-            if (videoExtensions.includes(path.extname(file).toLowerCase())) {
+            if (videoExtensions.includes(path.extname(file).toLowerCase()) && fs.existsSync(file)) {
                 videos.push(file);
             }
         });
@@ -17,18 +18,19 @@ function indexVideos(folders) {
     return videos;
 }
 
-function walkSync(dir, filelist = []) {
-    fs.readdirSync(dir).forEach(file => {
-        const dirFile = path.join(dir, file);
-        try {
-            fs.statSync(dirFile).isDirectory()
-                ? walkSync(dirFile, filelist)
-                : filelist.push(dirFile);
-        } catch (err) {
-            console.error('Error accessing file:', dirFile, err);
+function walkSync(dir) {
+    let files = [];
+    const list = fs.readdirSync(dir);
+    list.forEach(file => {
+        file = path.join(dir, file);
+        const stat = fs.statSync(file);
+        if (stat && stat.isDirectory()) {
+            files = files.concat(walkSync(file));
+        } else {
+            files.push(file);
         }
     });
-    return filelist;
+    return files;
 }
 
 module.exports = { indexVideos };
