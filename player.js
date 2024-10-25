@@ -6,7 +6,6 @@ const moment = require('moment');
 const fs = require('fs');
 const path = require('path');
 
-ffmpeg.setFfprobePath(ffprobe.path);
 
 const videoPlayer = document.getElementById('video-player');
 const videoTitle = document.getElementById('video-title');
@@ -66,6 +65,9 @@ ipcRenderer.on('load-video', async (event, filePath) => {
 
 function loadVideoMetadata(filePath) {
     return new Promise((resolve, reject) => {
+        // Явно указываем путь к ffprobe
+        ffmpeg.setFfprobePath(ffprobe.path);
+        
         ffmpeg.ffprobe(filePath, (err, metadata) => {
             if (err) {
                 console.error('Error reading metadata:', err);
@@ -73,27 +75,26 @@ function loadVideoMetadata(filePath) {
                 return;
             }
 
-            const videoStream = metadata.streams.find(stream => stream.codec_type === 'video');
-            const audioStreams = metadata.streams.filter(stream => stream.codec_type === 'audio');
+            try {
+                const videoStream = metadata.streams.find(stream => stream.codec_type === 'video');
+                
+                // Безопасное получение заголовка
+                const title = path.basename(filePath, path.extname(filePath))
+                    .replace(/-\d+$/, '') // Удаляем временную метку
+                    .replace(/_/g, ' '); // Заменяем подчеркивания на пробелы
 
-            // Используем заголовок из метаданных, если он есть, иначе используем имя файла
-            const title = metadata.format.tags && metadata.format.tags.title 
-                ? metadata.format.tags.title 
-                : path.basename(filePath, path.extname(filePath));
+                videoTitle.textContent = title;
+                videoMeta.textContent = metadata.format.format_name || 'Unknown format';
+                descriptionText.textContent = 'No description available';
 
-            videoTitle.textContent = title;
-            videoMeta.textContent = `${metadata.format.format_name || 'Unknown format'} • ${formatBitrate(metadata.format.bit_rate)}`;
-            descriptionText.textContent = metadata.format.tags ? (metadata.format.tags.comment || 'Description unavailable') : 'Description unavailable';
-
-            resolve({
-                audioTracks: audioStreams.map((stream, index) => ({
-                    kind: 'captions',
-                    label: `Audio ${index + 1}`,
-                    srclang: stream.tags ? stream.tags.language : 'Unknown',
-                    default: index === 0,
-                })),
-                title: title
-            });
+                resolve({
+                    title: title,
+                    format: metadata.format.format_name || 'Unknown format'
+                });
+            } catch (error) {
+                console.error('Error processing metadata:', error);
+                reject(error);
+            }
         });
     });
 }

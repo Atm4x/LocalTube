@@ -50,24 +50,33 @@ ipcRenderer.on('video-list', (event, videos) => {
     displayVideos(allVideos);
 });
 
+
+
+// В renderer.js
 function displayVideos(videos) {
     videoGrid.innerHTML = '';
     if (videos.length === 0) {
         videoGrid.innerHTML = '<p>No videos found in the downloads folder.</p>';
         return;
     }
+    
     const gridWrapper = document.createElement('div');
     gridWrapper.className = 'grid-wrapper';
-    videos.forEach(video => {
+    
+    videos.forEach(videoPath => {
+        if (!fs.existsSync(videoPath)) {
+            return; // Пропускаем несуществующие файлы
+        }
+
         const videoCard = document.createElement('div');
         videoCard.className = 'video-card';
 
         const videoElement = document.createElement('video');
-        videoElement.src = `file://${video}`;
+        videoElement.src = videoPath;
         videoElement.preload = 'metadata';
         videoElement.className = 'video-thumbnail';
 
-        // Set poster image to middle of video
+        // Возвращаем генерацию превью
         videoElement.addEventListener('loadedmetadata', () => {
             videoElement.currentTime = videoElement.duration / 3;
         });
@@ -82,21 +91,49 @@ function displayVideos(videos) {
 
         const videoInfo = document.createElement('div');
         videoInfo.className = 'video-card-info';
+        
+        const title = path.basename(videoPath, path.extname(videoPath))
+            .replace(/-\d+$/, '')
+            .replace(/_/g, ' ');
+            
         videoInfo.innerHTML = `
-            <div class="video-card-title">${path.basename(video)}</div>
-            <div class="video-card-meta">${path.dirname(video)}</div>
+            <div class="video-card-title">${title}</div>
         `;
 
         videoCard.appendChild(videoElement);
         videoCard.appendChild(videoInfo);
 
-        videoCard.addEventListener('click', () => {
-            ipcRenderer.send('open-video', video);
+        videoCard.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (fs.existsSync(videoPath)) {
+                ipcRenderer.send('open-video', videoPath);
+            } else {
+                alert('Video file not found');
+                updateVideoList(); // Обновляем список при обнаружении отсутствующего файла
+            }
         });
+
         gridWrapper.appendChild(videoCard);
     });
+    
     videoGrid.appendChild(gridWrapper);
 }
+// Добавьте функцию обновления списка видео
+function updateVideoList() {
+    const downloadPath = path.join(process.cwd(), 'downloads');
+    if (fs.existsSync(downloadPath)) {
+        ipcRenderer.send('index-videos');
+    }
+}
+
+// Обработчик завершения загрузки видео
+ipcRenderer.on('video-download-complete', (event, videoPath) => {
+    if (fs.existsSync(videoPath)) {
+        setTimeout(() => {
+            updateVideoList();
+        }, 1000); // Даём время на завершение всех операций с файлом
+    }
+});
 
 searchInput.addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase();
@@ -146,13 +183,9 @@ downloadButton.addEventListener('click', async () => {
     }
 });
 
-// Запрос списка видео при загрузке страницы
 ipcRenderer.send('index-videos');
 
 
-function updateVideoList() {
-    ipcRenderer.send('index-videos');
-}
 
 
 downloadButton.addEventListener('click', () => {

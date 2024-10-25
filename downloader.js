@@ -174,9 +174,12 @@ class VideoDownloader {
             let buffer = Buffer.from(await response.arrayBuffer());
             
             const safeTitle = ((videoInfo && videoInfo.videoTitle) || this.lastVideoInfo.videoTitle || 'video')
-                .replace(/[/\\?%*:|"<>]/g, '-')
-                .replace(/\s+/g, '_')
-                .substring(0, 200);
+                .replace(/[/\\?%*:|"<>#&{}]/g, '') 
+                .replace(/\s+/g, '_')              
+                .replace(/[.]+/g, '.')             
+                .replace(/^[.-]+|[.-]+$/g, '')     
+                .replace(/^$/g, 'video')           
+                .substring(0, 200);                
 
             const title = ((videoInfo && videoInfo.videoTitle) || this.lastVideoInfo.videoTitle || 'video')
             

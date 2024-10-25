@@ -24,9 +24,8 @@ function createWindow() {
 
     mainWindow.setMenu(null);
     mainWindow.loadFile('index.html');
-    mainWindow.webContents.openDevTools();
+    //mainWindow.webContents.openDevTools();
 }
-
 
 app.whenReady().then(() => {
     createWindow();
@@ -90,10 +89,14 @@ ipcMain.on('index-videos', (event) => {
 });
 
 ipcMain.on('open-video', (event, videoPath) => {
-    mainWindow.loadFile('player.html');
-    mainWindow.webContents.on('did-finish-load', () => {
-        mainWindow.webContents.send('load-video', videoPath);
-    });
+    if (fs.existsSync(videoPath)) {
+        mainWindow.loadFile('player.html');
+        mainWindow.webContents.once('did-finish-load', () => {
+            mainWindow.webContents.send('load-video', videoPath);
+        });
+    } else {
+        mainWindow.webContents.send('video-not-found', videoPath);
+    }
 });
 
 ipcMain.handle('get-video-info', async (event, videoUrl) => {
@@ -108,11 +111,13 @@ ipcMain.handle('download-video', async (event, { videoUrl, videoFormat, audioFor
     try {
         const result = await downloader.downloadVideo(videoUrl, videoFormat, audioFormat);
         
-        // После успешной загрузки обновляем список видео
-        const videos = indexVideos(indexedFolders);
-        event.sender.send('video-list', videos);
-        
-        return result;
+        // Проверяем существование файла
+        if (fs.existsSync(result.path)) {
+            mainWindow.webContents.send('video-download-complete', result.path);
+            return result;
+        } else {
+            throw new Error('Downloaded file not found');
+        }
     } catch (error) {
         throw error;
     }
@@ -122,4 +127,3 @@ function saveSettings() {
     const settingsPath = path.join(app.getPath('userData'), 'settings.json');
     fs.writeFileSync(settingsPath, JSON.stringify(indexedFolders, null, 2));
 }
-

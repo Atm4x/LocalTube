@@ -1,0 +1,1435 @@
+﻿Prompt: Analyze the LocalTube folder to understand its structure, purpose, and functionality. 
+Follow these steps to study the codebase:
+
+1. Read the README file to gain an overview of the project, its goals, and any setup instructions.
+
+2. Examine the folder structure to understand how the files and directories are organized.
+
+3. Identify the main entry point of the application (e.g., main.py, app.py, index.js) and start analyzing the code flow from there.
+
+4. Study the dependencies and libraries used in the project to understand the external tools and frameworks being utilized.
+
+5. Analyze the core functionality of the project by examining the key modules, classes, and functions.
+
+6. Look for any configuration files (e.g., config.py, .env) to understand how the project is configured and what settings are available.
+
+7. Investigate any tests or test directories to see how the project ensures code quality and handles different scenarios.
+
+8. Review any documentation or inline comments to gather insights into the codebase and its intended behavior.
+
+9. Identify any potential areas for improvement, optimization, or further exploration based on your analysis.
+
+10. Provide a summary of your findings, including the project's purpose, key features, and any notable observations or recommendations.
+
+Use the files and contents provided below to complete this analysis:
+
+
+README:
+README not found.
+
+Folder Structure: LocalTube
+.git/ [Ignored .git folder]
+.gitignore [Skipped]
+downloader.js [Skipped]
+downloads/
+index.html
+LocalTube_contents.txt [Skipped]
+main.js [Skipped]
+node_modules/
+package-lock.json [Skipped]
+package.json
+player.html
+player.js [Skipped]
+renderer.js
+settings.html [Skipped]
+settings.js [Skipped]
+styles.css
+videoIndexer.js [Skipped]
+node_modules\.bin [Ignored]
+node_modules\.package-lock.json [Ignored]
+node_modules\@electron [Ignored]
+node_modules\@ffmpeg-installer [Ignored]
+node_modules\@sec-ant [Ignored]
+node_modules\@sindresorhus [Ignored]
+node_modules\@szmarczak [Ignored]
+node_modules\@tokenizer [Ignored]
+node_modules\@types [Ignored]
+node_modules\async [Ignored]
+node_modules\base64-js [Ignored]
+node_modules\boolean [Ignored]
+node_modules\bops [Ignored]
+node_modules\buffer-crc32 [Ignored]
+node_modules\cacheable-lookup [Ignored]
+node_modules\cacheable-request [Ignored]
+node_modules\clone-response [Ignored]
+node_modules\concat-stream [Ignored]
+node_modules\content-type [Ignored]
+node_modules\core-js [Ignored]
+node_modules\custom-event-polyfill [Ignored]
+node_modules\debug [Ignored]
+node_modules\decompress-response [Ignored]
+node_modules\defer-to-connect [Ignored]
+node_modules\define-data-property [Ignored]
+node_modules\define-properties [Ignored]
+node_modules\detect-node [Ignored]
+node_modules\duplexer [Ignored]
+node_modules\electron [Ignored]
+node_modules\end-of-stream [Ignored]
+node_modules\env-paths [Ignored]
+node_modules\es-define-property [Ignored]
+node_modules\es-errors [Ignored]
+node_modules\es6-error [Ignored]
+node_modules\escape-string-regexp [Ignored]
+node_modules\extract-zip [Ignored]
+node_modules\fd-slicer [Ignored]
+node_modules\ffmetadata [Ignored]
+node_modules\ffmpeg-installer [Ignored]
+node_modules\ffprobe-static [Ignored]
+node_modules\file-type [Ignored]
+node_modules\fluent-ffmpeg [Ignored]
+node_modules\fs-extra [Ignored]
+node_modules\function-bind [Ignored]
+node_modules\get-intrinsic [Ignored]
+node_modules\get-stream [Ignored]
+node_modules\global-agent [Ignored]
+node_modules\globalthis [Ignored]
+node_modules\gopd [Ignored]
+node_modules\got [Ignored]
+node_modules\graceful-fs [Ignored]
+node_modules\has-property-descriptors [Ignored]
+node_modules\has-proto [Ignored]
+node_modules\has-symbols [Ignored]
+node_modules\hasown [Ignored]
+node_modules\http-cache-semantics [Ignored]
+node_modules\http2-wrapper [Ignored]
+node_modules\ieee754 [Ignored]
+node_modules\is-stream [Ignored]
+node_modules\isexe [Ignored]
+node_modules\json-buffer [Ignored]
+node_modules\json-stringify-safe [Ignored]
+node_modules\jsonfile [Ignored]
+node_modules\keyv [Ignored]
+node_modules\loadjs [Ignored]
+node_modules\lowercase-keys [Ignored]
+node_modules\matcher [Ignored]
+node_modules\media-typer [Ignored]
+node_modules\mimic-response [Ignored]
+node_modules\moment [Ignored]
+node_modules\mp4box [Ignored]
+node_modules\ms [Ignored]
+node_modules\music-metadata [Ignored]
+node_modules\node-fetch [Ignored]
+node_modules\node-ffmpeg-installer [Ignored]
+node_modules\normalize-url [Ignored]
+node_modules\object-keys [Ignored]
+node_modules\once [Ignored]
+node_modules\p-cancelable [Ignored]
+node_modules\peek-readable [Ignored]
+node_modules\pend [Ignored]
+node_modules\plyr [Ignored]
+node_modules\progress [Ignored]
+node_modules\pump [Ignored]
+node_modules\quick-lru [Ignored]
+node_modules\rangetouch [Ignored]
+node_modules\resolve-alpn [Ignored]
+node_modules\responselike [Ignored]
+node_modules\roarr [Ignored]
+node_modules\semver [Ignored]
+node_modules\semver-compare [Ignored]
+node_modules\serialize-error [Ignored]
+node_modules\split [Ignored]
+node_modules\sprintf-js [Ignored]
+node_modules\stream-combiner [Ignored]
+node_modules\stream-filter [Ignored]
+node_modules\strtok3 [Ignored]
+node_modules\sumchecker [Ignored]
+node_modules\through [Ignored]
+node_modules\to-utf8 [Ignored]
+node_modules\token-types [Ignored]
+node_modules\tr46 [Ignored]
+node_modules\type-fest [Ignored]
+node_modules\uint8array-extras [Ignored]
+node_modules\undici-types [Ignored]
+node_modules\universalify [Ignored]
+node_modules\url-polyfill [Ignored]
+node_modules\webidl-conversions [Ignored]
+node_modules\whatwg-url [Ignored]
+node_modules\which [Ignored]
+node_modules\wrappy [Ignored]
+node_modules\yauzl [Ignored]
+downloads\Delta_vs_John_Smith_anime_theeminenceinshadow_delta_johnsmith-1729702191528.mp4 [Ignored]
+downloads\Elden_Ring_Shadow_Of_The_Erdtree_–_Messmer_The_Impaler_Boss_Fight_4k_60FPS-1729710526783.mp4 [Ignored]
+downloads\nokotan-1729695775460.mp4 [Ignored]
+downloads\Okarun_Unlocks_Turbo_Granny_Power_-_DAN_DA_DAN-1729632953110.mp4 [Ignored]
+downloads\Prvnci_blesses_the_culture_with_a_very_satisfying_kittyo-1729894096005.mp4 [Ignored]
+downloads\THE_SHATTERING_-_Elden_Ring_(If_I_Lose_It_All)-1729695547314.mp4 [Ignored]
+downloads\video-1729622897850.mp4 [Ignored]
+downloads\video-1729624295442.mp4 [Ignored]
+downloads\video-1729624444843.mp4 [Ignored]
+downloads\Я_Использовал_НЕЙРОСЕТЬ,_Чтобы_Создать_Анкету_В_ДАЙВИНЧИКЕ-1729892401471.mp4 [Ignored]
+
+
+.git/ [Ignored .git folder]
+
+File: index.html
+Content:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalTube - Main Menu</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="logo">LocalTube</div>
+        <div class="search-container">
+            <input type="text" id="search" placeholder="Search videos...">
+        </div>
+        <div class="header-buttons">
+            <button id="download-button">⬇️</button>
+            <button id="settings-button">⚙️</button>
+            <button id="index-button">INDX</button>
+            <label class="switch">
+                <input type="checkbox" id="theme-toggle">
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </header>
+
+    <main>
+        <div class="video-container">
+            <div id="video-grid" class="video-grid"></div>
+        </div>
+    </main>
+
+    <div id="download-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Download Video</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="video-url">YouTube URL:</label>
+                    <input type="text" id="video-url" placeholder="https://www.youtube.com/watch?v=...">
+                </div>
+                <div id="quality-section" style="display: none;">
+                    <label for="quality-select">Select Quality:</label>
+                    <select id="quality-select"></select>
+                </div>
+                <div id="download-status"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="check-url" class="primary-button">Check Video</button>
+                <button id="start-download" class="primary-button" style="display: none;">Download</button>
+            </div>
+        </div>
+    </div>
+    <script src="renderer.js"></script>
+
+</body>
+</html>
+
+
+File: package.json
+Content:
+{
+  "name": "localtube",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^31.4.0",
+    "music-metadata": "^10.2.0"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "ffmetadata": "^1.7.0",
+    "ffmpeg-installer": "^1.0.2",
+    "ffprobe-static": "^3.1.0",
+    "fluent-ffmpeg": "^2.1.3",
+    "moment": "^2.30.1",
+    "mp4box": "^0.5.2",
+    "node-fetch": "^2.6.7",
+    "node-ffmpeg-installer": "^1.1.2",
+    "plyr": "^3.7.8"
+  }
+}
+
+
+File: player.html
+Content:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalTube - Video Player</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css">
+</head>
+<body data-page="player">
+    <header>
+        <a href="#" id="back-button" class="logo">LocalTube</a>
+        <div class="search-container">
+            <input type="text" id="search" placeholder="Search videos...">
+        </div>
+        <div class="header-buttons">
+            <button id="settings-button">⚙️</button>
+            <label class="switch">
+                <input type="checkbox" id="theme-toggle">
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </header>
+
+    <main>
+        <div class="video-container">
+            <div id="player-container">
+                <video id="video-player" controls></video>
+            </div>
+            <div class="video-info">
+                <h1 id="video-title"></h1>
+                <div id="video-meta"></div>
+                <div class="actions">
+                    <button id="like-button">Лайк</button>
+                    <button id="dislike-button">Дизлайк</button>
+                    <button id="share-button">Поделиться</button>
+                </div>
+                <div id="video-description">
+                    <p id="description-text"></p>
+                    <button id="show-more">Показать больше</button>
+                </div>
+            </div>
+        </div>
+        <div class="recommendations">
+            <h2>Рекомендуемые видео</h2>
+            <div id="video-list" class="video-list"></div>
+        </div>
+    </main>
+
+    <script src="https://cdn.plyr.io/3.6.8/plyr.polyfilled.js"></script>
+    <script src="player.js"></script>
+</body>
+</html>
+
+
+File: renderer.js
+Content:
+const { ipcRenderer } = require('electron');
+const path = require('path');
+const fs = require('fs');
+
+
+const ffmpeg = require('fluent-ffmpeg');
+
+const videoGrid = document.getElementById('video-grid');
+const settingsButton = document.getElementById('settings-button');
+const indexButton = document.getElementById('index-button');
+const themeToggle = document.getElementById('theme-toggle');
+const searchInput = document.getElementById('search');
+
+
+const downloadModal = document.getElementById('download-modal');
+const closeBtn = document.querySelector('.close');
+const videoUrlInput = document.getElementById('video-url');
+const qualitySelect = document.getElementById('quality-select');
+const qualitySection = document.getElementById('quality-section');
+const checkUrlBtn = document.getElementById('check-url');
+const startDownloadBtn = document.getElementById('start-download');
+const downloadStatus = document.getElementById('download-status');
+const downloadButton = document.getElementById('download-button');
+
+function toggleTheme() {
+    document.body.classList.toggle('dark-theme');
+    localStorage.setItem('dark-theme', document.body.classList.contains('dark-theme'));
+}
+
+if (localStorage.getItem('dark-theme') === 'true') {
+    document.body.classList.add('dark-theme');
+    themeToggle.checked = true;
+}
+
+themeToggle.addEventListener('change', toggleTheme);
+
+settingsButton.addEventListener('click', () => {
+    ipcRenderer.send('open-settings');
+});
+
+indexButton.addEventListener('click', () => {
+    ipcRenderer.send('index-videos');
+});
+
+let allVideos = [];
+const downloadPath = path.join(process.cwd(), 'downloads');
+
+ipcRenderer.on('video-list', (event, videos) => {
+    allVideos = videos.filter(video => fs.existsSync(video));
+    displayVideos(allVideos);
+});
+
+
+
+// В renderer.js
+function displayVideos(videos) {
+    videoGrid.innerHTML = '';
+    if (videos.length === 0) {
+        videoGrid.innerHTML = '<p>No videos found in the downloads folder.</p>';
+        return;
+    }
+    
+    const gridWrapper = document.createElement('div');
+    gridWrapper.className = 'grid-wrapper';
+    
+    videos.forEach(videoPath => {
+        if (!fs.existsSync(videoPath)) {
+            return; // Пропускаем несуществующие файлы
+        }
+
+        const videoCard = document.createElement('div');
+        videoCard.className = 'video-card';
+
+        const videoElement = document.createElement('video');
+        videoElement.src = videoPath;
+        videoElement.preload = 'metadata';
+        videoElement.className = 'video-thumbnail';
+
+        // Возвращаем генерацию превью
+        videoElement.addEventListener('loadedmetadata', () => {
+            videoElement.currentTime = videoElement.duration / 3;
+        });
+
+        videoElement.addEventListener('seeked', () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            canvas.getContext('2d').drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+            videoElement.poster = canvas.toDataURL();
+        });
+
+        const videoInfo = document.createElement('div');
+        videoInfo.className = 'video-card-info';
+        
+        const title = path.basename(videoPath, path.extname(videoPath))
+            .replace(/-\d+$/, '')
+            .replace(/_/g, ' ');
+            
+        videoInfo.innerHTML = `
+            <div class="video-card-title">${title}</div>
+        `;
+
+        videoCard.appendChild(videoElement);
+        videoCard.appendChild(videoInfo);
+
+        videoCard.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (fs.existsSync(videoPath)) {
+                ipcRenderer.send('open-video', videoPath);
+            } else {
+                alert('Video file not found');
+                updateVideoList(); // Обновляем список при обнаружении отсутствующего файла
+            }
+        });
+
+        gridWrapper.appendChild(videoCard);
+    });
+    
+    videoGrid.appendChild(gridWrapper);
+}
+// Добавьте функцию обновления списка видео
+function updateVideoList() {
+    const downloadPath = path.join(process.cwd(), 'downloads');
+    if (fs.existsSync(downloadPath)) {
+        ipcRenderer.send('index-videos');
+    }
+}
+
+// Обработчик завершения загрузки видео
+ipcRenderer.on('video-download-complete', (event, videoPath) => {
+    if (fs.existsSync(videoPath)) {
+        setTimeout(() => {
+            updateVideoList();
+        }, 1000); // Даём время на завершение всех операций с файлом
+    }
+});
+
+searchInput.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const filteredVideos = allVideos.filter(video => 
+        path.basename(video).toLowerCase().includes(searchTerm)
+    );
+    displayVideos(filteredVideos);
+});
+
+
+downloadButton.addEventListener('click', async () => {
+    const url = prompt('Enter YouTube URL:');
+    if (!url) return;
+
+    try {
+        const videoInfo = await ipcRenderer.invoke('get-video-info', url);
+        
+        // Create quality selection dialog
+        const qualities = videoInfo.qualities.video;
+        const qualityOptions = Object.entries(qualities)
+            .map(([id, info]) => ({
+                id,
+                label: `${info.height}p${info.fps > 30 ? info.fps : ''} ${info.dynamic_range}`
+            }))
+            .sort((a, b) => parseInt(b.label) - parseInt(a.label));
+
+        const quality = prompt(
+            `Select quality:\n${qualityOptions.map((q, i) => `${i + 1}: ${q.label}`).join('\n')}`,
+            '1'
+        );
+
+        if (!quality) return;
+
+        const selectedQuality = qualityOptions[parseInt(quality) - 1];
+        if (!selectedQuality) return;
+
+        // Start download
+        const result = await ipcRenderer.invoke('download-video', {
+            videoUrl: url,
+            videoFormat: selectedQuality.id,
+            audioFormat: 'bestaudio'
+        });
+
+        alert(`Download completed!\nSaved to: ${result.path}`);
+    } catch (error) {
+        alert(`Error: ${error.message}`);
+    }
+});
+
+ipcRenderer.send('index-videos');
+
+
+
+
+downloadButton.addEventListener('click', () => {
+    downloadModal.style.display = 'block';
+    videoUrlInput.focus();
+});
+
+closeBtn.addEventListener('click', () => {
+    downloadModal.style.display = 'none';
+    resetModal();
+});
+
+window.addEventListener('click', (event) => {
+    if (event.target === downloadModal) {
+        downloadModal.style.display = 'none';
+        resetModal();
+    }
+});
+
+function resetModal() {
+    videoUrlInput.value = '';
+    qualitySection.style.display = 'none';
+    startDownloadBtn.style.display = 'none';
+    checkUrlBtn.style.display = 'block';
+    downloadStatus.innerHTML = '';
+    downloadStatus.className = '';
+}
+
+checkUrlBtn.addEventListener('click', async () => {
+    const url = videoUrlInput.value.trim();
+    if (!url) {
+        showStatus('Please enter a valid YouTube URL', 'error');
+        return;
+    }
+
+    try {
+        showStatus('Checking video information...', 'info');
+        checkUrlBtn.disabled = true;
+        
+        const videoInfo = await ipcRenderer.invoke('get-video-info', url);
+        
+        // Populate quality select
+        qualitySelect.innerHTML = '';
+        const qualities = videoInfo.qualities.video;
+        Object.entries(qualities)
+            .map(([id, info]) => ({
+                id,
+                label: `${info.height}p${info.fps > 30 ? info.fps : ''} ${info.dynamic_range}`,
+                height: info.height
+            }))
+            .sort((a, b) => b.height - a.height)
+            .forEach(quality => {
+                const option = document.createElement('option');
+                option.value = quality.id;
+                option.textContent = quality.label;
+                qualitySelect.appendChild(option);
+            });
+
+        qualitySection.style.display = 'block';
+        startDownloadBtn.style.display = 'block';
+        checkUrlBtn.style.display = 'none';
+        showStatus('Select video quality and click Download', 'success');
+    } catch (error) {
+        showStatus(`Error: ${error.message}`, 'error');
+    } finally {
+        checkUrlBtn.disabled = false;
+    }
+});
+
+startDownloadBtn.addEventListener('click', async () => {
+    const url = videoUrlInput.value.trim();
+    const selectedQuality = qualitySelect.value;
+
+    try {
+        showStatus('Downloading video...', 'info');
+        startDownloadBtn.disabled = true;
+        
+        const result = await ipcRenderer.invoke('download-video', {
+            videoUrl: url,
+            videoFormat: selectedQuality,
+            audioFormat: 'bestaudio'
+        });
+
+        showStatus('Download completed!', 'success');
+        
+        updateVideoList();
+        
+        // Close modal and open player
+        setTimeout(() => {
+            downloadModal.style.display = 'none';
+            resetModal();
+            ipcRenderer.send('open-video', result.path);
+        }, 1500);
+    } catch (error) {
+        showStatus(`Error: ${error.message}`, 'error');
+        startDownloadBtn.disabled = false;
+    }
+});
+
+function showStatus(message, type) {
+    downloadStatus.innerHTML = type === 'info' 
+        ? `<div class="loading-spinner"></div>${message}`
+        : message;
+    downloadStatus.className = `status-${type}`;
+}
+
+File: styles.css
+Content:
+:root {
+    --background-color: #f9f9f9;
+    --text-color: #333;
+    --header-bg: #fff;
+    --card-bg: #fff;
+    --primary-color: #065fd4;
+}
+
+.dark-theme {
+    --background-color: #181818;
+    --text-color: #fff;
+    --header-bg: #202020;
+    --card-bg: #282828;
+    --primary-color: #3ea6ff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: var(--header-bg);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.search-container {
+    flex-grow: 1;
+    margin: 0 20px;
+}
+
+#search {
+    width: 100%;
+    padding: 10px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.header-buttons {
+    display: flex;
+    align-items: center;
+}
+
+#select-file {
+    padding: 10px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 20px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--primary-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+body[data-page="player"] main {
+    display: flex;
+    max-width: 1600px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+main {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+.video-container {
+    flex: 1;
+    margin: 0;
+}
+
+#player-container {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    margin: 0 auto;
+}
+
+#video-player {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%; /* Масштабируем по ширине */
+    height: 100%; /* Масштабируем по высоте */
+    object-fit: contain; /* Подгоняем видео по размеру контейнера */
+    transform: translate(-50%, -50%); /* Центрируем видео */
+}
+
+.video-info {
+    margin-top: 20px;
+}
+
+#video-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+#video-meta {
+    color: #606060;
+    margin-bottom: 10px;
+}
+
+.actions {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.actions button {
+    background-color: var(--card-bg);
+    border: none;
+    padding: 10px 20px;
+    margin-right: 10px;
+    border-radius: 18px;
+    cursor: pointer;
+    color: var(--text-color);
+}
+
+#video-description {
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+#show-more {
+    background-color: transparent;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.recommendations {
+    width: 400px;
+    padding: 20px;
+}
+
+
+.video-card-info {
+    padding: 10px;
+}
+
+.video-card-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.video-card-meta {
+    font-size: 12px;
+    color: #606060;
+}
+
+/* Plyr custom styles */
+.plyr--full-ui input[type=range] {
+    color: var(--primary-color);
+}
+
+.plyr__control--overlaid {
+    background: var(--primary-color);
+}
+
+.plyr--video .plyr__control.plyr__tab-focus,
+.plyr--video .plyr__control:hover,
+.plyr--video .plyr__control[aria-expanded=true] {
+    background: var(--primary-color);
+}
+
+.plyr__control.plyr__tab-focus {
+    box-shadow: 0 0 0 5px rgba(var(--primary-color-rgb), 0.5);
+}
+
+.plyr__menu__container .plyr__control[role=menuitemradio][aria-checked=true]::before {
+    background: var(--primary-color);
+}
+
+@media (max-width: 1200px) {
+    main {
+        flex-direction: column;
+    }
+
+    .video-container {
+        margin-right: 0;
+        margin-bottom: 20px;
+    }
+
+    .recommendations {
+        width: 100%;
+    }
+}
+
+.settings-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+#folder-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#folder-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--card-bg);
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+#folder-list li button {
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#add-folder {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+
+.video-card-info {
+    padding: 10px;
+}
+
+.video-card-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.video-card-meta {
+    font-size: 0.8em;
+    color: #777;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 12px;
+    width: 80%;
+    max-width: 500px;
+    position: relative;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.close {
+    color: var(--text-color);
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: var(--primary-color);
+}
+
+.modal-body {
+    margin-bottom: 20px;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-color);
+}
+
+.input-group input,
+.input-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.primary-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.primary-button:hover {
+    background-color: var(--primary-color-hover);
+}
+
+#download-status {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.status-info {
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.status-success {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.status-error {
+    background-color: #f44336;
+    color: white;
+}
+
+/* Loading spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.grid-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    width: 100%;
+    padding: 20px;
+}
+
+
+.video-grid {
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Добавим стили для адаптивности */
+@media (max-width: 1200px) {
+    .grid-wrapper {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .grid-wrapper {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+.video-card {
+    flex: 0 0 calc(25% - 20px); /* 4 карточки в ряд с учетом отступов */
+    min-width: 250px; /* минимальная ширина карточки */
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s;
+    cursor: pointer;
+    position: relative;
+}
+
+.video-card:hover {
+    transform: scale(1.05);
+}
+
+.video-thumbnail {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background-color: #222; /* темный фон для превью */
+}
+
+.video-card-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    color: #fff;
+}
+
+.video-card-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #fff; /* белый текст для лучшей читаемости */
+}
+
+
+.video-card-meta {
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+@media (max-width: 600px) {
+    .grid-wrapper {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 1200px) {
+    .video-card {
+        flex: 0 0 calc(33.333% - 20px); /* 3 карточки в ряд */
+    }
+}
+
+@media (max-width: 900px) {
+    .video-card {
+        flex: 0 0 calc(50% - 20px); /* 2 карточки в ряд */
+    }
+}
+
+@media (max-width: 600px) {
+    .video-card {
+        flex: 0 0 calc(100% - 20px); /* 1 карточка в ряд */
+    }
+}
+
+.logo {
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+node_modules\.bin [Ignored]
+
+node_modules\.package-lock.json [Ignored]
+
+node_modules\@electron [Ignored]
+
+node_modules\@ffmpeg-installer [Ignored]
+
+node_modules\@sec-ant [Ignored]
+
+node_modules\@sindresorhus [Ignored]
+
+node_modules\@szmarczak [Ignored]
+
+node_modules\@tokenizer [Ignored]
+
+node_modules\@types [Ignored]
+
+node_modules\async [Ignored]
+
+node_modules\base64-js [Ignored]
+
+node_modules\boolean [Ignored]
+
+node_modules\bops [Ignored]
+
+node_modules\buffer-crc32 [Ignored]
+
+node_modules\cacheable-lookup [Ignored]
+
+node_modules\cacheable-request [Ignored]
+
+node_modules\clone-response [Ignored]
+
+node_modules\concat-stream [Ignored]
+
+node_modules\content-type [Ignored]
+
+node_modules\core-js [Ignored]
+
+node_modules\custom-event-polyfill [Ignored]
+
+node_modules\debug [Ignored]
+
+node_modules\decompress-response [Ignored]
+
+node_modules\defer-to-connect [Ignored]
+
+node_modules\define-data-property [Ignored]
+
+node_modules\define-properties [Ignored]
+
+node_modules\detect-node [Ignored]
+
+node_modules\duplexer [Ignored]
+
+node_modules\electron [Ignored]
+
+node_modules\end-of-stream [Ignored]
+
+node_modules\env-paths [Ignored]
+
+node_modules\es-define-property [Ignored]
+
+node_modules\es-errors [Ignored]
+
+node_modules\es6-error [Ignored]
+
+node_modules\escape-string-regexp [Ignored]
+
+node_modules\extract-zip [Ignored]
+
+node_modules\fd-slicer [Ignored]
+
+node_modules\ffmetadata [Ignored]
+
+node_modules\ffmpeg-installer [Ignored]
+
+node_modules\ffprobe-static [Ignored]
+
+node_modules\file-type [Ignored]
+
+node_modules\fluent-ffmpeg [Ignored]
+
+node_modules\fs-extra [Ignored]
+
+node_modules\function-bind [Ignored]
+
+node_modules\get-intrinsic [Ignored]
+
+node_modules\get-stream [Ignored]
+
+node_modules\global-agent [Ignored]
+
+node_modules\globalthis [Ignored]
+
+node_modules\gopd [Ignored]
+
+node_modules\got [Ignored]
+
+node_modules\graceful-fs [Ignored]
+
+node_modules\has-property-descriptors [Ignored]
+
+node_modules\has-proto [Ignored]
+
+node_modules\has-symbols [Ignored]
+
+node_modules\hasown [Ignored]
+
+node_modules\http-cache-semantics [Ignored]
+
+node_modules\http2-wrapper [Ignored]
+
+node_modules\ieee754 [Ignored]
+
+node_modules\is-stream [Ignored]
+
+node_modules\isexe [Ignored]
+
+node_modules\json-buffer [Ignored]
+
+node_modules\json-stringify-safe [Ignored]
+
+node_modules\jsonfile [Ignored]
+
+node_modules\keyv [Ignored]
+
+node_modules\loadjs [Ignored]
+
+node_modules\lowercase-keys [Ignored]
+
+node_modules\matcher [Ignored]
+
+node_modules\media-typer [Ignored]
+
+node_modules\mimic-response [Ignored]
+
+node_modules\moment [Ignored]
+
+node_modules\mp4box [Ignored]
+
+node_modules\ms [Ignored]
+
+node_modules\music-metadata [Ignored]
+
+node_modules\node-fetch [Ignored]
+
+node_modules\node-ffmpeg-installer [Ignored]
+
+node_modules\normalize-url [Ignored]
+
+node_modules\object-keys [Ignored]
+
+node_modules\once [Ignored]
+
+node_modules\p-cancelable [Ignored]
+
+node_modules\peek-readable [Ignored]
+
+node_modules\pend [Ignored]
+
+node_modules\plyr [Ignored]
+
+node_modules\progress [Ignored]
+
+node_modules\pump [Ignored]
+
+node_modules\quick-lru [Ignored]
+
+node_modules\rangetouch [Ignored]
+
+node_modules\resolve-alpn [Ignored]
+
+node_modules\responselike [Ignored]
+
+node_modules\roarr [Ignored]
+
+node_modules\semver [Ignored]
+
+node_modules\semver-compare [Ignored]
+
+node_modules\serialize-error [Ignored]
+
+node_modules\split [Ignored]
+
+node_modules\sprintf-js [Ignored]
+
+node_modules\stream-combiner [Ignored]
+
+node_modules\stream-filter [Ignored]
+
+node_modules\strtok3 [Ignored]
+
+node_modules\sumchecker [Ignored]
+
+node_modules\through [Ignored]
+
+node_modules\to-utf8 [Ignored]
+
+node_modules\token-types [Ignored]
+
+node_modules\tr46 [Ignored]
+
+node_modules\type-fest [Ignored]
+
+node_modules\uint8array-extras [Ignored]
+
+node_modules\undici-types [Ignored]
+
+node_modules\universalify [Ignored]
+
+node_modules\url-polyfill [Ignored]
+
+node_modules\webidl-conversions [Ignored]
+
+node_modules\whatwg-url [Ignored]
+
+node_modules\which [Ignored]
+
+node_modules\wrappy [Ignored]
+
+node_modules\yauzl [Ignored]
+
+downloads\Delta_vs_John_Smith_anime_theeminenceinshadow_delta_johnsmith-1729702191528.mp4 [Ignored]
+
+downloads\Elden_Ring_Shadow_Of_The_Erdtree_–_Messmer_The_Impaler_Boss_Fight_4k_60FPS-1729710526783.mp4 [Ignored]
+
+downloads\nokotan-1729695775460.mp4 [Ignored]
+
+downloads\Okarun_Unlocks_Turbo_Granny_Power_-_DAN_DA_DAN-1729632953110.mp4 [Ignored]
+
+downloads\Prvnci_blesses_the_culture_with_a_very_satisfying_kittyo-1729894096005.mp4 [Ignored]
+
+downloads\THE_SHATTERING_-_Elden_Ring_(If_I_Lose_It_All)-1729695547314.mp4 [Ignored]
+
+downloads\video-1729622897850.mp4 [Ignored]
+
+downloads\video-1729624295442.mp4 [Ignored]
+
+downloads\video-1729624444843.mp4 [Ignored]
+
+downloads\Я_Использовал_НЕЙРОСЕТЬ,_Чтобы_Создать_Анкету_В_ДАЙВИНЧИКЕ-1729892401471.mp4 [Ignored]
+

@@ -119,16 +119,18 @@ input:checked + .slider:before {
     transform: translateX(26px);
 }
 
-main {
+body[data-page="player"] main {
     display: flex;
     max-width: 1600px;
     margin: 20px auto;
     padding: 0 20px;
 }
 
-.video-container {
-    flex: 1;
-    margin-right: 20px;
+main {
+    max-width: 100%; /* Убираем ограничение ширины */
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Предотвращаем горизонтальную прокрутку */
 }
 
 #player-container {
@@ -138,16 +140,29 @@ main {
     border-radius: 12px;
     overflow: hidden;
     position: relative;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-#video-player {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%; /* Масштабируем по ширине */
-    height: 100%; /* Масштабируем по высоте */
-    object-fit: contain; /* Подгоняем видео по размеру контейнера */
-    transform: translate(-50%, -50%); /* Центрируем видео */
+.plyr {
+    width: 100%;
+    height: 100%;
+}
+
+.plyr__video-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.plyr video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .video-info {
@@ -197,7 +212,7 @@ main {
 
 .recommendations {
     width: 400px;
-    max-width: 100%; /* Добавьте эту строку */
+    padding: 20px;
 }
 
 
@@ -454,20 +469,79 @@ main {
     to { transform: rotate(360deg); }
 }
 
-.grid-wrapper {
+
+
+
+.video-container {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+
+
+.video-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
-    padding: 20px;
     width: 100%;
 }
 
+/* Добавим стили для адаптивности */
+@media (max-width: 1200px) {
+    .grid-wrapper {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .grid-wrapper {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+.grid-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+    width: 100%;
+    margin: 0;
+    justify-content: flex-start;
+}
+
 .video-card {
-    background-color: #f0f0f0;
+    flex: 0 0 calc(25% - 15px); /* Изменяем размер, учитывая gap */
+    max-width: calc(25% - 15px); /* Добавляем максимальную ширину */
+    min-width: 250px;
+    margin-bottom: 0; /* Убираем нижний отступ */
+    background-color: rgba(0, 0, 0, 0.8); /* Делаем фон темнее */
     border-radius: 8px;
     overflow: hidden;
     transition: transform 0.2s;
     cursor: pointer;
+    position: relative;
+}
+
+/* Обновляем медиа-запросы */
+@media (max-width: 1200px) {
+    .video-card {
+        flex: 0 0 calc(33.333% - 14px);
+        max-width: calc(33.333% - 14px);
+    }
+}
+
+@media (max-width: 900px) {
+    .video-card {
+        flex: 0 0 calc(50% - 10px);
+        max-width: calc(50% - 10px);
+    }
+}
+
+@media (max-width: 600px) {
+    .video-card {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
 }
 
 .video-card:hover {
@@ -478,10 +552,17 @@ main {
     width: 100%;
     aspect-ratio: 16 / 9;
     object-fit: cover;
+    background-color: #222; /* темный фон для превью */
 }
 
 .video-card-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
     padding: 10px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    color: #fff;
 }
 
 .video-card-title {
@@ -490,18 +571,81 @@ main {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: #fff; /* белый текст для лучшей читаемости */
 }
+
+.video-container,
+.grid-wrapper,
+.video-grid {
+    float: none;
+    position: static;
+    display: block;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+/* Затем применим нужные стили */
+.grid-wrapper {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    width: 100%;
+}
+
+/* .video-card-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 15px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+    color: #fff;
+}
+
+.video-card-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+} */
+
 
 .video-card-meta {
     font-size: 0.8em;
-    color: #666;
+    color: rgba(255, 255, 255, 0.8);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
 @media (max-width: 600px) {
     .grid-wrapper {
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     }
+}
+
+@media (max-width: 1200px) {
+    .video-card {
+        flex: 0 0 calc(33.333% - 20px); /* 3 карточки в ряд */
+    }
+}
+
+@media (max-width: 900px) {
+    .video-card {
+        flex: 0 0 calc(50% - 20px); /* 2 карточки в ряд */
+    }
+}
+
+@media (max-width: 600px) {
+    .video-card {
+        flex: 0 0 calc(100% - 20px); /* 1 карточка в ряд */
+    }
+}
+
+.logo {
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
 }
