@@ -7,6 +7,8 @@ const ffmpeg = require('fluent-ffmpeg');
 const moment = require('moment');
 
 
+const VideoPlayerManager = require('./components/video-player-manager');
+window.videoPlayerManager = new VideoPlayerManager();
 
 const loadedScripts = {};
 window.currentVideo = null;
@@ -36,6 +38,8 @@ async function loadComponent(id, componentPath) {
 
 async function loadPage(pageName) {
     try {
+
+
         // Очищаем предыдущие ресурсы
         cleanupCurrentPage();
         
@@ -72,6 +76,7 @@ function cleanupCurrentPage() {
 }
 
 // Инициализация приложения
+// app.js - в функции initApp
 async function initApp() {
     // Загрузка компонентов
     await loadComponent("header-component", "./components/header.html");
@@ -79,7 +84,6 @@ async function initApp() {
     // Загрузка начальной страницы
     await loadPage("index");
 
-    // Инициализация обработчиков событий для header
     if (!loadedScripts['header']) {
         const headerScript = document.createElement('script');
         headerScript.src = './components/header.js';

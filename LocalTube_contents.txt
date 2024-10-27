@@ -36,145 +36,21 @@ components/
 downloader.js [Skipped]
 downloads/
 LocalTube_contents.txt [Skipped]
-main.js
+main.js [Skipped]
 node_modules/
 package-lock.json [Skipped]
 package.json [Skipped]
 pages/
 styles.css [Skipped]
 videoIndexer.js [Skipped]
-pages\index.html
-pages\index.js
+pages\index.html [Skipped]
+pages\index.js [Skipped]
 pages\player.html
 pages\player.js
-pages\settings.html
-pages\settings.js
-node_modules\.bin [Ignored]
-node_modules\.package-lock.json [Ignored]
-node_modules\@electron [Ignored]
-node_modules\@ffmpeg-installer [Ignored]
-node_modules\@sec-ant [Ignored]
-node_modules\@sindresorhus [Ignored]
-node_modules\@szmarczak [Ignored]
-node_modules\@tokenizer [Ignored]
-node_modules\@types [Ignored]
-node_modules\async [Ignored]
-node_modules\base64-js [Ignored]
-node_modules\boolean [Ignored]
-node_modules\bops [Ignored]
-node_modules\buffer-crc32 [Ignored]
-node_modules\cacheable-lookup [Ignored]
-node_modules\cacheable-request [Ignored]
-node_modules\clone-response [Ignored]
-node_modules\concat-stream [Ignored]
-node_modules\content-type [Ignored]
-node_modules\core-js [Ignored]
-node_modules\custom-event-polyfill [Ignored]
-node_modules\debug [Ignored]
-node_modules\decompress-response [Ignored]
-node_modules\defer-to-connect [Ignored]
-node_modules\define-data-property [Ignored]
-node_modules\define-properties [Ignored]
-node_modules\detect-node [Ignored]
-node_modules\duplexer [Ignored]
-node_modules\electron [Ignored]
-node_modules\end-of-stream [Ignored]
-node_modules\env-paths [Ignored]
-node_modules\es-define-property [Ignored]
-node_modules\es-errors [Ignored]
-node_modules\es6-error [Ignored]
-node_modules\escape-string-regexp [Ignored]
-node_modules\extract-zip [Ignored]
-node_modules\fd-slicer [Ignored]
-node_modules\ffmetadata [Ignored]
-node_modules\ffmpeg-installer [Ignored]
-node_modules\ffprobe-static [Ignored]
-node_modules\file-type [Ignored]
-node_modules\fluent-ffmpeg [Ignored]
-node_modules\fs-extra [Ignored]
-node_modules\function-bind [Ignored]
-node_modules\get-intrinsic [Ignored]
-node_modules\get-stream [Ignored]
-node_modules\global-agent [Ignored]
-node_modules\globalthis [Ignored]
-node_modules\gopd [Ignored]
-node_modules\got [Ignored]
-node_modules\graceful-fs [Ignored]
-node_modules\has-property-descriptors [Ignored]
-node_modules\has-proto [Ignored]
-node_modules\has-symbols [Ignored]
-node_modules\hasown [Ignored]
-node_modules\http-cache-semantics [Ignored]
-node_modules\http2-wrapper [Ignored]
-node_modules\ieee754 [Ignored]
-node_modules\is-stream [Ignored]
-node_modules\isexe [Ignored]
-node_modules\json-buffer [Ignored]
-node_modules\json-stringify-safe [Ignored]
-node_modules\jsonfile [Ignored]
-node_modules\keyv [Ignored]
-node_modules\loadjs [Ignored]
-node_modules\lowercase-keys [Ignored]
-node_modules\matcher [Ignored]
-node_modules\media-typer [Ignored]
-node_modules\mimic-response [Ignored]
-node_modules\moment [Ignored]
-node_modules\mp4box [Ignored]
-node_modules\ms [Ignored]
-node_modules\music-metadata [Ignored]
-node_modules\node-fetch [Ignored]
-node_modules\node-ffmpeg-installer [Ignored]
-node_modules\normalize-url [Ignored]
-node_modules\object-keys [Ignored]
-node_modules\once [Ignored]
-node_modules\p-cancelable [Ignored]
-node_modules\peek-readable [Ignored]
-node_modules\pend [Ignored]
-node_modules\plyr [Ignored]
-node_modules\progress [Ignored]
-node_modules\pump [Ignored]
-node_modules\quick-lru [Ignored]
-node_modules\rangetouch [Ignored]
-node_modules\resolve-alpn [Ignored]
-node_modules\responselike [Ignored]
-node_modules\roarr [Ignored]
-node_modules\semver [Ignored]
-node_modules\semver-compare [Ignored]
-node_modules\serialize-error [Ignored]
-node_modules\split [Ignored]
-node_modules\sprintf-js [Ignored]
-node_modules\stream-combiner [Ignored]
-node_modules\stream-filter [Ignored]
-node_modules\strtok3 [Ignored]
-node_modules\sumchecker [Ignored]
-node_modules\through [Ignored]
-node_modules\to-utf8 [Ignored]
-node_modules\token-types [Ignored]
-node_modules\tr46 [Ignored]
-node_modules\type-fest [Ignored]
-node_modules\uint8array-extras [Ignored]
-node_modules\undici-types [Ignored]
-node_modules\universalify [Ignored]
-node_modules\url-polyfill [Ignored]
-node_modules\webidl-conversions [Ignored]
-node_modules\whatwg-url [Ignored]
-node_modules\which [Ignored]
-node_modules\wrappy [Ignored]
-node_modules\yauzl [Ignored]
-downloads\Delta_vs_John_Smith_anime_theeminenceinshadow_delta_johnsmith-1729702191528.mp4 [Ignored]
-downloads\Elden_Ring_Shadow_Of_The_Erdtree_–_Messmer_The_Impaler_Boss_Fight_4k_60FPS-1729710526783.mp4 [Ignored]
-downloads\Kai_Cenat_Reacts_To_Malenia_Phase_2_In_Elden_Ring!_😂-1729956431139.mp4 [Ignored]
-downloads\Link_Click_-_Opening_2_4K_60FPS_VORTEX《时光代理人第二季》-_白鲨JAWS_Leaked_Version-1729896253333.mp4 [Ignored]
-downloads\nokotan-1729695775460.mp4 [Ignored]
-downloads\Okarun_Unlocks_Turbo_Granny_Power_-_DAN_DA_DAN-1729632953110.mp4 [Ignored]
-downloads\Prvnci_blesses_the_culture_with_a_very_satisfying_kittyo-1729894096005.mp4 [Ignored]
-downloads\SHINZO_WO_SASAGEYO!_ATTACK_ON_TITAN_Grissini_Project_Orchestra_(+_choristers)-1729982123932.mp4 [Ignored]
-downloads\THE_SHATTERING_-_Elden_Ring_(If_I_Lose_It_All)-1729695547314.mp4 [Ignored]
-downloads\video-1729622897850.mp4 [Ignored]
-downloads\video-1729624295442.mp4 [Ignored]
-downloads\video-1729624444843.mp4 [Ignored]
-components\header.html
+pages\settings.html [Skipped]
+pages\settings.js [Skipped]
 components\header.js
+components\video-player-manager.js
 
 
 .git/ [Ignored .git folder]
@@ -194,6 +70,16 @@ Content:
     <!-- Header компонент -->
     <div id="header-component"></div>
 
+    <div id="unified-player" class="unified-player minimized">
+        <div class="player-wrapper">
+            <video id="video-player" class="video-element"></video>
+            <div class="player-controls minimized-controls">
+                <button id="play-pause-btn" class="control-btn">⏯️</button>
+                <button id="expand-btn" class="control-btn">⤢</button>
+                <button id="close-btn" class="control-btn">✖️</button>
+            </div>
+        </div>
+    </div>
     <!-- Контейнер для загрузки страниц -->
     <main id="page-content"></main>
 
@@ -216,6 +102,8 @@ const ffmpeg = require('fluent-ffmpeg');
 const moment = require('moment');
 
 
+const VideoPlayerManager = require('./components/video-player-manager');
+window.videoPlayerManager = new VideoPlayerManager();
 
 const loadedScripts = {};
 window.currentVideo = null;
@@ -243,21 +131,24 @@ async function loadComponent(id, componentPath) {
     }
 }
 
-// Функция для загрузки страниц
 async function loadPage(pageName) {
     try {
+
+
+        // Очищаем предыдущие ресурсы
+        cleanupCurrentPage();
+        
         const response = await fetch(`./pages/${pageName}.html`);
         if (!response.ok) throw new Error(`Failed to fetch page at ./pages/${pageName}.html`);
         const html = await response.text();
         document.getElementById("page-content").innerHTML = html;
 
-        // Удаляем предыдущий скрипт страницы, если он существует
+        // Удаляем предыдущий скрипт
         if (loadedScripts[pageName]) {
             document.body.removeChild(loadedScripts[pageName]);
             delete loadedScripts[pageName];
         }
 
-        // Динамическая загрузка соответствующего JavaScript файла
         const script = document.createElement('script');
         script.src = `./pages/${pageName}.js`;
         script.onload = () => {
@@ -269,15 +160,26 @@ async function loadPage(pageName) {
     }
 }
 
+function cleanupCurrentPage() {
+    // Очищаем все обработчики событий
+    const pageContent = document.getElementById("page-content");
+    const oldElement = pageContent.cloneNode(false);
+    pageContent.parentNode.replaceChild(oldElement, pageContent);
+    
+    // Очищаем память от неиспользуемых ресурсов
+    if (window.gc) window.gc();
+}
+
 // Инициализация приложения
+// app.js - в функции initApp
 async function initApp() {
     // Загрузка компонентов
     await loadComponent("header-component", "./components/header.html");
+    await loadComponent("floating-player-component", "./components/floating-player.html");
 
     // Загрузка начальной страницы
     await loadPage("index");
 
-    // Инициализация обработчиков событий для header
     if (!loadedScripts['header']) {
         const headerScript = document.createElement('script');
         headerScript.src = './components/header.js';
@@ -313,328 +215,6 @@ ipcRenderer.on('load-video', (event, videoPath) => {
         }, 100);
     }
 });
-
-File: main.js
-Content:
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
-const { indexVideos, addActiveDownload, removeActiveDownload } = require('./videoIndexer');
-const path = require('path');
-const fs = require('fs');
-
-const VideoDownloader = require('./downloader');
-const downloader = new VideoDownloader();
-
-const activeDownloads = new Map();
-
-
-let mainWindow;
-let indexedFolders = [];
-
-function createWindow() {
-    mainWindow = new BrowserWindow({
-        width: 1200,
-        height: 800,
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,
-            enableRemoteModule: true,
-            webSecurity: false,
-            allowRunningInsecureContent: true
-        }
-    });
-
-    mainWindow.setMenu(null);
-    mainWindow.loadFile('app.html');
-    mainWindow.webContents.openDevTools();
-}
-
-app.whenReady().then(() => {
-    createWindow();
-
-    app.on('activate', () => {
-        if (BrowserWindow.getAllWindows().length === 0) {
-            createWindow();
-        }
-    });
-
-    // Load settings from settings.json
-    const settingsPath = path.join(app.getPath('userData'), 'settings.json');
-    if (fs.existsSync(settingsPath)) {
-        indexedFolders = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-    }
-});
-
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-        app.quit();
-    }
-});
-
-// Навигация между страницами
-ipcMain.on('navigate', (event, pageName) => {
-    mainWindow.webContents.send('navigate', pageName);
-});
-
-ipcMain.on('get-folders', (event) => {
-    event.reply('load-folders', indexedFolders);
-});
-
-ipcMain.on('add-folder', (event) => {
-    dialog.showOpenDialog({
-        properties: ['openDirectory']
-    }).then(result => {
-        if (!result.canceled) {
-            const newFolder = result.filePaths[0];
-            if (!indexedFolders.includes(newFolder)) {
-                indexedFolders.push(newFolder);
-                saveSettings();
-                event.reply('load-folders', indexedFolders);
-            }
-        }
-    });
-});
-
-ipcMain.on('remove-folder', (event, folder) => {
-    indexedFolders = indexedFolders.filter(f => f !== folder);
-    saveSettings();
-    event.reply('load-folders', indexedFolders);
-});
-
-ipcMain.on('index-videos', (event) => {
-    const downloadPath = path.join(process.cwd(), 'downloads');
-    const videos = indexVideos([downloadPath]);
-    
-    const filteredVideos = videos.filter(video => 
-        !Array.from(activeDownloads.values()).some(download => 
-            download.path === video
-        )
-    );
-    
-    event.reply('video-list', filteredVideos);
-});
-
-ipcMain.on('open-video', (event, videoPath) => {
-    if (fs.existsSync(videoPath)) {
-        mainWindow.webContents.send('navigate', 'player');
-        // Используем setTimeout, чтобы дать время на загрузку страницы плеера
-        setTimeout(() => {
-            mainWindow.webContents.send('load-video', videoPath);
-        }, 100);
-    } else {
-        mainWindow.webContents.send('video-not-found', videoPath);
-    }
-});
-
-ipcMain.handle('get-video-info', async (event, videoUrl) => {
-    try {
-        return await downloader.getVideoInfo(videoUrl);
-    } catch (error) {
-        throw error;
-    }
-});
-
-ipcMain.handle('download-video', async (event, { videoUrl, videoFormat, audioFormat }) => {
-    try {
-        const downloadId = Date.now().toString();
-        const tempPath = path.join(app.getPath('temp'), `${downloadId}.mp4`);
-        
-        // Добавляем загрузку в активные
-        activeDownloads.set(downloadId, {
-            id: downloadId,
-            url: videoUrl,
-            status: 'pending',
-            progress: 0,
-            tempPath
-        });
-        
-        // Сообщаем всем окнам об обновлении списка загрузок
-        BrowserWindow.getAllWindows().forEach(win => {
-            win.webContents.send('download-update', Array.from(activeDownloads.values()));
-        });
-
-        // Начинаем загрузку
-        activeDownloads.get(downloadId).status = 'downloading';
-        updateDownloadStatus(downloadId);
-        
-        const result = await downloader.downloadVideo(videoUrl, videoFormat, audioFormat);
-        
-        // Обновляем статус на добавление метаданных
-        activeDownloads.get(downloadId).status = 'meta';
-        updateDownloadStatus(downloadId);
-        
-        // После успешной загрузки
-        activeDownloads.delete(downloadId);
-        updateDownloadStatus(downloadId, true);
-        
-        return result;
-    } catch (error) {
-        throw error;
-    }
-});
-
-
-function updateDownloadStatus(downloadId, finished = false) {
-    BrowserWindow.getAllWindows().forEach(win => {
-        if (finished) {
-            win.webContents.send('download-finished', downloadId);
-        } else {
-            win.webContents.send('download-update', Array.from(activeDownloads.values()));
-        }
-    });
-}
-
-ipcMain.handle('get-active-downloads', () => {
-    return Array.from(activeDownloads.values());
-  });
-
-function saveSettings() {
-    const settingsPath = path.join(app.getPath('userData'), 'settings.json');
-    fs.writeFileSync(settingsPath, JSON.stringify(indexedFolders, null, 2));
-}
-
-File: pages\index.html
-Content:
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LocalTube - Main Menu</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <main>
-        <div class="video-container">
-            <div id="video-grid" class="video-grid"></div>
-        </div>
-    </main>
-
-    <!-- <script src="renderer.js"></script> -->
-
-</body>
-</html>
-
-
-File: pages\index.js
-Content:
-
-(function() {
-    console.log("Index page loaded");
-
-    let videoGrid;
-    let allVideos = [];
-    const downloadPath = path.join(process.cwd(), 'downloads');
-
-    function initIndex() {
-        videoGrid = document.getElementById('video-grid');
-        if (!videoGrid) {
-            console.error('Video grid element not found');
-            return;
-        }
-
-        ipcRenderer.send('index-videos');
-    }
-
-    function displayVideos(videos) {
-        if (!videoGrid) return;
-
-        videoGrid.innerHTML = '';
-        if (videos.length === 0) {
-            videoGrid.innerHTML = '<p>No videos found in the downloads folder.</p>';
-            return;
-        }
-        
-        const gridWrapper = document.createElement('div');
-        gridWrapper.className = 'grid-wrapper';
-        
-        videos.forEach(videoPath => {
-            if (!fs.existsSync(videoPath)) {
-                return; // Пропускаем несуществующие файлы
-            }
-
-            const videoCard = createVideoCard(videoPath);
-            gridWrapper.appendChild(videoCard);
-        });
-        
-        videoGrid.appendChild(gridWrapper);
-    }
-
-    function createVideoCard(videoPath) {
-        const videoCard = document.createElement('div');
-        videoCard.className = 'video-card';
-
-        const videoElement = document.createElement('video');
-        videoElement.src = videoPath;
-        videoElement.preload = 'metadata';
-        videoElement.className = 'video-thumbnail';
-
-        videoElement.addEventListener('loadedmetadata', () => {
-            videoElement.currentTime = videoElement.duration / 3;
-        });
-
-        videoElement.addEventListener('seeked', () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = videoElement.videoWidth;
-            canvas.height = videoElement.videoHeight;
-            canvas.getContext('2d').drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-            videoElement.poster = canvas.toDataURL();
-        });
-
-        const videoInfo = document.createElement('div');
-        videoInfo.className = 'video-card-info';
-        
-        const title = path.basename(videoPath, path.extname(videoPath))
-            .replace(/-\d+$/, '')
-            .replace(/_/g, ' ');
-            
-        videoInfo.innerHTML = `
-            <div class="video-card-title">${title}</div>
-        `;
-
-        videoCard.appendChild(videoElement);
-        videoCard.appendChild(videoInfo);
-
-        videoCard.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (fs.existsSync(videoPath)) {
-                window.appFunctions.setCurrentVideo(videoPath);
-                window.appFunctions.loadPage('player');
-            } else {
-                alert('Video file not found');
-                updateVideoList();
-            }
-        });
-
-        return videoCard;
-    }
-
-    function updateVideoList() {
-        if (fs.existsSync(downloadPath)) {
-            ipcRenderer.send('index-videos');
-        }
-    }
-
-    // Обработчики событий
-    ipcRenderer.on('video-list', (event, videos) => {
-        allVideos = videos.filter(video => fs.existsSync(video));
-        displayVideos(allVideos);
-    });
-
-    ipcRenderer.on('video-download-complete', (event, videoPath) => {
-        if (fs.existsSync(videoPath)) {
-            setTimeout(updateVideoList, 1000);
-        }
-    });
-
-    // Инициализация страницы
-    initIndex();
-
-    // Экспорт функций, которые могут понадобиться извне
-    window.indexFunctions = {
-        updateVideoList,
-        displayVideos
-    };
-})();
 
 File: pages\player.html
 Content:
@@ -685,34 +265,38 @@ Content:
 (function() {
     console.log("Player page loaded");
 
-    let videoPlayer, videoTitle, videoMeta, descriptionText, showMoreBtn, backButton, player;
+    let videoPlayer, videoTitle, videoMeta, descriptionText, showMoreBtn, player;
+    const unifiedPlayer = document.getElementById('unified-player');
+    
+    async function initPlayer() {
+        // Добавляем класс для страницы плеера
+        document.getElementById('page-content').classList.add('player-page');
+        
+        // Настраиваем unified-player для полноэкранного режима
+        unifiedPlayer.classList.remove('minimized');
+        unifiedPlayer.classList.add('maximized');
+        unifiedPlayer.classList.add('visible');
 
-    function initPlayer() {
         videoPlayer = document.getElementById('video-player');
         videoTitle = document.getElementById('video-title');
         videoMeta = document.getElementById('video-meta');
         descriptionText = document.getElementById('description-text');
         showMoreBtn = document.getElementById('show-more');
-        backButton = document.getElementById('back-button');
 
-        // Plyr initialization
+        // Инициализируем Plyr
         player = new Plyr(videoPlayer, {
             controls: [
-                'play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'
+                'play-large', 'play', 'progress', 'current-time', 'mute',
+                'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'
             ],
-            settings: ['captions', 'quality', 'speed', 'loop'],
-            previewThumbnails: {
-                enabled: false,
-            }
+            settings: ['captions', 'quality', 'speed', 'loop']
         });
 
-        // Загрузка текущего видео
         if (window.currentVideo) {
             filePath = window.currentVideo;
             videoPlayer.src = filePath;
             try {
                 loadVideoMetadata(filePath);
-
                 player.source = {
                     type: 'video',
                     sources: [{ src: filePath, type: 'video/mp4' }],
@@ -723,21 +307,26 @@ Content:
                         console.error('Error auto-playing video:', error);
                     });
                 });
-
             } catch (error) {
                 console.error('Error loading video:', error);
             }
-        } else {
-            console.error('No video selected');
-            // Можно добавить здесь логику для возврата на главную страницу
         }
 
-        showMoreBtn.addEventListener('click', () => {
-            const isExpanded = descriptionText.style.maxHeight;
-            descriptionText.style.maxHeight = isExpanded ? null : `${descriptionText.scrollHeight}px`;
-            showMoreBtn.textContent = isExpanded ? 'Show more' : 'Show less';
+        // Сохраняем время воспроизведения
+        player.on('timeupdate', () => {
+            window.currentVideoTime = player.currentTime;
         });
     }
+
+    function cleanup() {
+        document.getElementById('page-content').classList.remove('player-page');
+        if (player) {
+            window.currentVideoTime = player.currentTime;
+            window.isVideoPlaying = !player.paused;
+            player.destroy();
+        }
+    }
+
 
     async function loadVideo(filePath) {
         videoPlayer.src = filePath;
@@ -801,362 +390,9 @@ Content:
 
     // Инициализация плеера при загрузке страницы
     initPlayer();
+    return { cleanup };
 })();
 
-File: pages\settings.html
-Content:
-
-    <main>
-        <h2>Indexed Folders</h2>
-        <ul id="folder-list"></ul>
-        <button id="add-folder">Add Folder</button>
-        <label class="switch">
-            <input type="checkbox" id="theme-toggle">
-            <span class="slider round"></span>
-        </label>
-    </main>
-    <script src="settings.js"></script>
-
-File: pages\settings.js
-Content:
-
-const folderList = document.getElementById('folder-list');
-const addFolderButton = document.getElementById('add-folder');
-const backButton = document.getElementById('back-button');
-
-themeToggle.addEventListener('change', toggleTheme);
-
-// Загрузка сохраненных папок
-ipcRenderer.on('load-folders', (event, folders) => {
-    folderList.innerHTML = '';
-    folders.forEach(folder => {
-        const li = document.createElement('li');
-        li.textContent = folder;
-        const removeButton = document.createElement('button');
-        removeButton.textContent = 'Remove';
-        removeButton.onclick = () => ipcRenderer.send('remove-folder', folder);
-        li.appendChild(removeButton);
-        folderList.appendChild(li);
-    });
-});
-
-addFolderButton.addEventListener('click', () => {
-    ipcRenderer.send('add-folder');
-});
-
-backButton.addEventListener('click', () => {
-    ipcRenderer.send('back-to-main');
-});
-
-ipcRenderer.send('get-folders');
-
-
-node_modules\.bin [Ignored]
-
-node_modules\.package-lock.json [Ignored]
-
-node_modules\@electron [Ignored]
-
-node_modules\@ffmpeg-installer [Ignored]
-
-node_modules\@sec-ant [Ignored]
-
-node_modules\@sindresorhus [Ignored]
-
-node_modules\@szmarczak [Ignored]
-
-node_modules\@tokenizer [Ignored]
-
-node_modules\@types [Ignored]
-
-node_modules\async [Ignored]
-
-node_modules\base64-js [Ignored]
-
-node_modules\boolean [Ignored]
-
-node_modules\bops [Ignored]
-
-node_modules\buffer-crc32 [Ignored]
-
-node_modules\cacheable-lookup [Ignored]
-
-node_modules\cacheable-request [Ignored]
-
-node_modules\clone-response [Ignored]
-
-node_modules\concat-stream [Ignored]
-
-node_modules\content-type [Ignored]
-
-node_modules\core-js [Ignored]
-
-node_modules\custom-event-polyfill [Ignored]
-
-node_modules\debug [Ignored]
-
-node_modules\decompress-response [Ignored]
-
-node_modules\defer-to-connect [Ignored]
-
-node_modules\define-data-property [Ignored]
-
-node_modules\define-properties [Ignored]
-
-node_modules\detect-node [Ignored]
-
-node_modules\duplexer [Ignored]
-
-node_modules\electron [Ignored]
-
-node_modules\end-of-stream [Ignored]
-
-node_modules\env-paths [Ignored]
-
-node_modules\es-define-property [Ignored]
-
-node_modules\es-errors [Ignored]
-
-node_modules\es6-error [Ignored]
-
-node_modules\escape-string-regexp [Ignored]
-
-node_modules\extract-zip [Ignored]
-
-node_modules\fd-slicer [Ignored]
-
-node_modules\ffmetadata [Ignored]
-
-node_modules\ffmpeg-installer [Ignored]
-
-node_modules\ffprobe-static [Ignored]
-
-node_modules\file-type [Ignored]
-
-node_modules\fluent-ffmpeg [Ignored]
-
-node_modules\fs-extra [Ignored]
-
-node_modules\function-bind [Ignored]
-
-node_modules\get-intrinsic [Ignored]
-
-node_modules\get-stream [Ignored]
-
-node_modules\global-agent [Ignored]
-
-node_modules\globalthis [Ignored]
-
-node_modules\gopd [Ignored]
-
-node_modules\got [Ignored]
-
-node_modules\graceful-fs [Ignored]
-
-node_modules\has-property-descriptors [Ignored]
-
-node_modules\has-proto [Ignored]
-
-node_modules\has-symbols [Ignored]
-
-node_modules\hasown [Ignored]
-
-node_modules\http-cache-semantics [Ignored]
-
-node_modules\http2-wrapper [Ignored]
-
-node_modules\ieee754 [Ignored]
-
-node_modules\is-stream [Ignored]
-
-node_modules\isexe [Ignored]
-
-node_modules\json-buffer [Ignored]
-
-node_modules\json-stringify-safe [Ignored]
-
-node_modules\jsonfile [Ignored]
-
-node_modules\keyv [Ignored]
-
-node_modules\loadjs [Ignored]
-
-node_modules\lowercase-keys [Ignored]
-
-node_modules\matcher [Ignored]
-
-node_modules\media-typer [Ignored]
-
-node_modules\mimic-response [Ignored]
-
-node_modules\moment [Ignored]
-
-node_modules\mp4box [Ignored]
-
-node_modules\ms [Ignored]
-
-node_modules\music-metadata [Ignored]
-
-node_modules\node-fetch [Ignored]
-
-node_modules\node-ffmpeg-installer [Ignored]
-
-node_modules\normalize-url [Ignored]
-
-node_modules\object-keys [Ignored]
-
-node_modules\once [Ignored]
-
-node_modules\p-cancelable [Ignored]
-
-node_modules\peek-readable [Ignored]
-
-node_modules\pend [Ignored]
-
-node_modules\plyr [Ignored]
-
-node_modules\progress [Ignored]
-
-node_modules\pump [Ignored]
-
-node_modules\quick-lru [Ignored]
-
-node_modules\rangetouch [Ignored]
-
-node_modules\resolve-alpn [Ignored]
-
-node_modules\responselike [Ignored]
-
-node_modules\roarr [Ignored]
-
-node_modules\semver [Ignored]
-
-node_modules\semver-compare [Ignored]
-
-node_modules\serialize-error [Ignored]
-
-node_modules\split [Ignored]
-
-node_modules\sprintf-js [Ignored]
-
-node_modules\stream-combiner [Ignored]
-
-node_modules\stream-filter [Ignored]
-
-node_modules\strtok3 [Ignored]
-
-node_modules\sumchecker [Ignored]
-
-node_modules\through [Ignored]
-
-node_modules\to-utf8 [Ignored]
-
-node_modules\token-types [Ignored]
-
-node_modules\tr46 [Ignored]
-
-node_modules\type-fest [Ignored]
-
-node_modules\uint8array-extras [Ignored]
-
-node_modules\undici-types [Ignored]
-
-node_modules\universalify [Ignored]
-
-node_modules\url-polyfill [Ignored]
-
-node_modules\webidl-conversions [Ignored]
-
-node_modules\whatwg-url [Ignored]
-
-node_modules\which [Ignored]
-
-node_modules\wrappy [Ignored]
-
-node_modules\yauzl [Ignored]
-
-downloads\Delta_vs_John_Smith_anime_theeminenceinshadow_delta_johnsmith-1729702191528.mp4 [Ignored]
-
-downloads\Elden_Ring_Shadow_Of_The_Erdtree_–_Messmer_The_Impaler_Boss_Fight_4k_60FPS-1729710526783.mp4 [Ignored]
-
-downloads\Kai_Cenat_Reacts_To_Malenia_Phase_2_In_Elden_Ring!_😂-1729956431139.mp4 [Ignored]
-
-downloads\Link_Click_-_Opening_2_4K_60FPS_VORTEX《时光代理人第二季》-_白鲨JAWS_Leaked_Version-1729896253333.mp4 [Ignored]
-
-downloads\nokotan-1729695775460.mp4 [Ignored]
-
-downloads\Okarun_Unlocks_Turbo_Granny_Power_-_DAN_DA_DAN-1729632953110.mp4 [Ignored]
-
-downloads\Prvnci_blesses_the_culture_with_a_very_satisfying_kittyo-1729894096005.mp4 [Ignored]
-
-downloads\SHINZO_WO_SASAGEYO!_ATTACK_ON_TITAN_Grissini_Project_Orchestra_(+_choristers)-1729982123932.mp4 [Ignored]
-
-downloads\THE_SHATTERING_-_Elden_Ring_(If_I_Lose_It_All)-1729695547314.mp4 [Ignored]
-
-downloads\video-1729622897850.mp4 [Ignored]
-
-downloads\video-1729624295442.mp4 [Ignored]
-
-downloads\video-1729624444843.mp4 [Ignored]
-
-File: components\header.html
-Content:
-<!-- components/header.html -->
-<header>
-    <div class="logo" id="logo" onclick="loadPage('index')">LocalTube</div>
-    <div class="search-container">
-        <input type="text" id="search" placeholder="Search videos...">
-    </div>
-    <div class="header-buttons">
-        <div id="download-button" class="header-icon">⬇️</div>
-        <div id="settings-button" class="header-icon" onclick="loadPage('settings')">⚙️ Settings</div>
-        <label class="switch">
-            <input type="checkbox" id="theme-toggle">
-            <span class="slider round"></span>
-        </label>
-    </div>
-    <script src="header.js"></script>
-</header>
-
-<div id="download-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <div class="tab-container">
-                <button class="tab-button active" data-tab="download">Download Video</button>
-                <button class="tab-button" data-tab="active">Active Downloads</button>
-            </div>
-            <span class="close">&times;</span>
-        </div>
-
-        <!-- Вкладка Download Video -->
-        <div id="download-tab" class="tab-content active">
-            <div class="modal-body">
-                <div class="input-group">
-                    <label for="video-url">YouTube URL:</label>
-                    <input type="text" id="video-url" placeholder="https://www.youtube.com/watch?v=...">
-                </div>
-                <div id="quality-section" style="display: none;">
-                    <label for="quality-select">Select Quality:</label>
-                    <select id="quality-select"></select>
-                </div>
-                <div id="download-status"></div>
-            </div>
-            <div class="modal-footer">
-                <button id="check-url" class="primary-button">Check Video</button>
-                <button id="start-download" class="primary-button" style="display: none;">Download</button>
-            </div>
-        </div>
-
-        <!-- Вкладка Active Downloads -->
-        <div id="active-tab" class="tab-content">
-            <div class="active-downloads-container">
-                <div id="active-downloads-list">
-                    <!-- Активные загрузки будут добавляться сюда динамически -->
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 File: components\header.js
 Content:
@@ -1175,6 +411,90 @@ const qualitySection = document.getElementById('quality-section');
 const checkUrlBtn = document.getElementById('check-url');
 const startDownloadBtn = document.getElementById('start-download');
 const downloadStatus = document.getElementById('download-status');
+
+
+let isDragging = false;
+let currentX;
+let currentY;
+let initialX;
+let initialY;
+
+function dragStart(e) {
+    if (!e.target.classList.contains('player-wrapper')) return;
+    
+    const container = document.getElementById('unified-player');
+    initialX = e.clientX - container.offsetLeft;
+    initialY = e.clientY - container.offsetTop;
+    isDragging = true;
+}
+function drag(e) {
+    if (!isDragging) return;
+    
+    e.preventDefault();
+    const container = document.getElementById('unified-player');
+    currentX = e.clientX - initialX;
+    currentY = e.clientY - initialY;
+
+    // Ограничиваем перемещение
+    const maxX = window.innerWidth - container.offsetWidth;
+    const maxY = window.innerHeight - container.offsetHeight;
+    currentX = Math.max(0, Math.min(currentX, maxX));
+    currentY = Math.max(0, Math.min(currentY, maxY));
+
+    container.style.left = currentX + "px";
+    container.style.top = currentY + "px";
+}
+
+function dragEnd() {
+    isDragging = false;
+}
+
+function setupMinimizedPlayer() {
+    const unifiedPlayer = document.getElementById('unified-player');
+    const videoPlayer = document.getElementById('video-player');
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const expandBtn = document.getElementById('expand-btn');
+    const closeBtn = document.getElementById('close-btn');
+
+    if (!window.currentVideo) return;
+
+    // Настройка плеера для минимизированного режима
+    unifiedPlayer.classList.remove('maximized');
+    unifiedPlayer.classList.add('minimized', 'visible');
+
+    // Восстанавливаем время воспроизведения
+    if (window.currentVideoTime) {
+        videoPlayer.currentTime = window.currentVideoTime;
+    }
+
+    // Восстанавливаем состояние воспроизведения
+    if (window.isVideoPlaying) {
+        videoPlayer.play();
+    }
+
+    // Обработчики для кнопок
+    playPauseBtn.onclick = () => {
+        if (videoPlayer.paused) {
+            videoPlayer.play();
+        } else {
+            videoPlayer.pause();
+        }
+    };
+
+    expandBtn.onclick = () => {
+        window.appFunctions.loadPage('player');
+    };
+
+    closeBtn.onclick = () => {
+        unifiedPlayer.classList.remove('visible');
+        videoPlayer.pause();
+    };
+
+    // Drag and drop functionality
+    unifiedPlayer.onmousedown = dragStart;
+    document.onmousemove = drag;
+    document.onmouseup = dragEnd;
+}
 
 
 function toggleTheme() {
@@ -1283,6 +603,9 @@ settingsButton.addEventListener('click', () => {
 });
 
 logoButton.addEventListener('click', () => {
+    if (window.currentVideo) {
+        setupMinimizedPlayer();
+    }
     ipcRenderer.send('index-videos');
 });
 
@@ -1464,4 +787,116 @@ function createDownloadItemElement(download) {
     
     return div;
 }
+
+File: components\video-player-manager.js
+Content:
+// components/video-player-manager.js
+class VideoPlayerManager {
+    constructor() {
+        this.currentVideo = null;
+        this.currentTime = 0;
+        this.isPlaying = false;
+        this.mainPlayer = null;
+        this.floatingPlayer = null;
+        this.plyrInstance = null;
+    }
+
+    async initMainPlayer(videoElement) {
+        try {
+            if (this.plyrInstance) {
+                this.plyrInstance.destroy();
+            }
+
+            this.mainPlayer = videoElement;
+            this.plyrInstance = new Plyr(videoElement, {
+                controls: [
+                    'play-large', 'play', 'progress', 'current-time', 'mute',
+                    'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'
+                ],
+                settings: ['captions', 'quality', 'speed', 'loop']
+            });
+
+            this.plyrInstance.on('timeupdate', () => {
+                this.currentTime = this.plyrInstance.currentTime;
+            });
+
+            if (this.currentVideo) {
+                await this.loadVideo(this.currentVideo, this.currentTime);
+            }
+        } catch (error) {
+            console.error('Error initializing main player:', error);
+        }
+    }
+
+    initFloatingPlayer(videoElement) {
+        this.floatingPlayer = videoElement;
+        if (this.currentVideo) {
+            this.floatingPlayer.src = this.currentVideo;
+            this.floatingPlayer.currentTime = this.currentTime;
+        }
+    }
+
+    async loadVideo(videoPath, startTime = 0) {
+        try {
+            this.currentVideo = videoPath;
+            
+            if (this.plyrInstance) {
+                this.plyrInstance.source = {
+                    type: 'video',
+                    sources: [{ src: videoPath, type: 'video/mp4' }]
+                };
+                
+                this.plyrInstance.once('loadedmetadata', () => {
+                    this.plyrInstance.currentTime = startTime || this.currentTime;
+                    if (this.isPlaying) this.plyrInstance.play();
+                });
+            }
+
+            if (this.floatingPlayer) {
+                this.floatingPlayer.src = videoPath;
+                this.floatingPlayer.currentTime = startTime || this.currentTime;
+                if (this.isPlaying) this.floatingPlayer.play();
+            }
+        } catch (error) {
+            console.error('Error loading video:', error);
+        }
+    }
+
+    switchToFloating() {
+        if (!this.currentVideo) return;
+
+        if (this.plyrInstance) {
+            this.currentTime = this.plyrInstance.currentTime;
+            this.isPlaying = !this.plyrInstance.paused;
+        }
+
+        const floatingContainer = document.getElementById('floating-player-container');
+        if (floatingContainer) {
+            floatingContainer.classList.remove('hidden');
+            if (this.floatingPlayer) {
+                this.floatingPlayer.currentTime = this.currentTime;
+                if (this.isPlaying) this.floatingPlayer.play();
+            }
+        }
+    }
+
+    switchToMain() {
+        if (!this.currentVideo) return;
+
+        if (this.floatingPlayer) {
+            this.currentTime = this.floatingPlayer.currentTime;
+            this.isPlaying = !this.floatingPlayer.paused;
+            this.floatingPlayer.pause();
+        }
+
+        const floatingContainer = document.getElementById('floating-player-container');
+        if (floatingContainer) {
+            floatingContainer.classList.add('hidden');
+        }
+
+        window.appFunctions.loadPage('player');
+    }
+}
+
+module.exports = VideoPlayerManager;
 

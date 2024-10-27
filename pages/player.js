@@ -1,64 +1,76 @@
 (function() {
     console.log("Player page loaded");
 
-    let videoPlayer, videoTitle, videoMeta, descriptionText, showMoreBtn, backButton, player;
-
+    let videoPlayer, videoTitle, videoMeta, descriptionText, showMoreBtn, player;
+    const unifiedPlayer = document.getElementById('unified-player');
+    
     async function initPlayer() {
+        
+        // Добавляем класс для страницы плеера
+        document.getElementById('page-content').classList.add('player-page');
+        
+        // Настраиваем unified-player для полноэкранного режима
+        unifiedPlayer.classList.remove('minimized');
+        unifiedPlayer.classList.add('maximized');
+        unifiedPlayer.classList.add('visible');
+
         videoPlayer = document.getElementById('video-player');
         videoTitle = document.getElementById('video-title');
         videoMeta = document.getElementById('video-meta');
         descriptionText = document.getElementById('description-text');
         showMoreBtn = document.getElementById('show-more');
-        backButton = document.getElementById('back-button');
 
-        // Plyr initialization
-        player = new Plyr(videoPlayer, {
-            controls: [
-                'play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'
-            ],
-            settings: ['captions', 'quality', 'speed', 'loop'],
-            previewThumbnails: {
-                enabled: false,
-            }
-        });
-
-        // Загрузка текущего видео
+        
+        // Проверяем существует ли уже плеер
+        if (!window.globalPlayer) {
+            // Инициализируем Plyr только если его еще нет
+            window.globalPlayer = new Plyr(videoPlayer, {
+                controls: [
+                    'play-large', 'play', 'progress', 'current-time', 'mute',
+                    'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'
+                ],
+                settings: ['captions', 'quality', 'speed', 'loop'],
+                tooltips: { controls: true, seek: true }
+            });
+        }
+        window.globalPlayer.on('controlsshown', () => console.log('Controls shown'));
+        window.globalPlayer.on('controlshidden', () => console.log('Controls hidden'));
         if (window.currentVideo) {
+            // Проверяем, не совпадает ли текущий источник с новым
+            if (window.currentVideoSource === window.currentVideo) {
+                console.log('Same video, skipping...');
+                return;
+            }
             filePath = window.currentVideo;
-            videoPlayer.src = filePath;
             try {
                 loadVideoMetadata(filePath);
-
-                player.source = {
+                window.globalPlayer.source = {
                     type: 'video',
                     sources: [{ src: filePath, type: 'video/mp4' }],
                 };
+                
+                window.currentVideoSource = window.currentVideo;
                
-                player.on('loadedmetadata', () => {
-                    player.play().catch(error => {
+                window.globalPlayer.on('loadedmetadata', () => {
+                    window.globalPlayer.play().catch(error => {
                         console.error('Error auto-playing video:', error);
                     });
                 });
-
             } catch (error) {
                 console.error('Error loading video:', error);
             }
-        } else {
-            console.error('No video selected');
-            // Можно добавить здесь логику для возврата на главную страницу
         }
-
-        showMoreBtn.addEventListener('click', () => {
-            const isExpanded = descriptionText.style.maxHeight;
-            descriptionText.style.maxHeight = isExpanded ? null : `${descriptionText.scrollHeight}px`;
-            showMoreBtn.textContent = isExpanded ? 'Show more' : 'Show less';
-        });
-
-        player.on('destroy', () => {
-            videoPlayer.src = '';
-            if (window.gc) window.gc();
-        });
     }
+
+    function cleanup() {
+        document.getElementById('page-content').classList.remove('player-page');
+        if (player) {
+            window.currentVideoTime = player.currentTime;
+            window.isVideoPlaying = !player.paused;
+            player.destroy();
+        }
+    }
+
 
     async function loadVideo(filePath) {
         videoPlayer.src = filePath;
@@ -122,4 +134,5 @@
 
     // Инициализация плеера при загрузке страницы
     initPlayer();
+    return { cleanup };
 })();

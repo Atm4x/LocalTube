@@ -15,6 +15,84 @@ const startDownloadBtn = document.getElementById('start-download');
 const downloadStatus = document.getElementById('download-status');
 
 
+let isDragging = false;
+let currentX;
+let currentY;
+let initialX;
+let initialY;
+
+function dragStart(e) {
+    if (!e.target.classList.contains('player-wrapper')) return;
+    
+    const container = document.getElementById('unified-player');
+    initialX = e.clientX - container.offsetLeft;
+    initialY = e.clientY - container.offsetTop;
+    isDragging = true;
+}
+function drag(e) {
+    if (!isDragging) return;
+    
+    e.preventDefault();
+    const container = document.getElementById('unified-player');
+    currentX = e.clientX - initialX;
+    currentY = e.clientY - initialY;
+
+    // Ограничиваем перемещение
+    const maxX = window.innerWidth - container.offsetWidth;
+    const maxY = window.innerHeight - container.offsetHeight;
+    currentX = Math.max(0, Math.min(currentX, maxX));
+    currentY = Math.max(0, Math.min(currentY, maxY));
+
+    container.style.left = currentX + "px";
+    container.style.top = currentY + "px";
+}
+
+function dragEnd() {
+    isDragging = false;
+}
+
+function setupMinimizedPlayer() {
+    const unifiedPlayer = document.getElementById('unified-player');
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const expandBtn = document.getElementById('expand-btn');
+    const closeBtn = document.getElementById('close-btn');
+
+    if (!window.currentVideo) return;
+
+    // Настройка плеера для минимизированного режима
+    unifiedPlayer.classList.remove('maximized');
+    unifiedPlayer.classList.add('minimized', 'visible');
+
+    // Восстанавливаем состояние воспроизведения
+    if (window.isVideoPlaying) {
+        window.globalPlayer.play();
+    }
+
+    // Обработчики для кнопок
+    playPauseBtn.onclick = () => {
+        if (window.globalPlayer.paused) {
+            window.globalPlayer.play();
+        } else {
+            window.globalPlayer.pause();
+        }
+    };
+
+    expandBtn.onclick = () => {
+        window.appFunctions.loadPage('player');
+    };
+
+    closeBtn.onclick = () => {
+        unifiedPlayer.classList.remove('visible');
+        window.globalPlayer.pause();
+    };
+
+    // Drag and drop functionality
+    unifiedPlayer.onmousedown = dragStart;
+    document.onmousemove = drag;
+    document.onmouseup = dragEnd;
+}
+
+
 function toggleTheme() {
     document.body.classList.toggle('dark-theme');
     localStorage.setItem('dark-theme', document.body.classList.contains('dark-theme'));
@@ -121,6 +199,9 @@ settingsButton.addEventListener('click', () => {
 });
 
 logoButton.addEventListener('click', () => {
+    if (window.currentVideo) {
+        setupMinimizedPlayer();
+    }
     ipcRenderer.send('index-videos');
 });
 
