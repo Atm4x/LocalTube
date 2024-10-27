@@ -30,21 +30,25 @@ README not found.
 Folder Structure: LocalTube
 .git/ [Ignored .git folder]
 .gitignore [Skipped]
+app.html
+app.js
+components/
 downloader.js [Skipped]
 downloads/
-index.html
 LocalTube_contents.txt [Skipped]
-main.js [Skipped]
+main.js
 node_modules/
 package-lock.json [Skipped]
-package.json
-player.html
-player.js [Skipped]
-renderer.js
-settings.html [Skipped]
-settings.js [Skipped]
-styles.css
+package.json [Skipped]
+pages/
+styles.css [Skipped]
 videoIndexer.js [Skipped]
+pages\index.html
+pages\index.js
+pages\player.html
+pages\player.js
+pages\settings.html
+pages\settings.js
 node_modules\.bin [Ignored]
 node_modules\.package-lock.json [Ignored]
 node_modules\@electron [Ignored]
@@ -159,19 +163,336 @@ node_modules\wrappy [Ignored]
 node_modules\yauzl [Ignored]
 downloads\Delta_vs_John_Smith_anime_theeminenceinshadow_delta_johnsmith-1729702191528.mp4 [Ignored]
 downloads\Elden_Ring_Shadow_Of_The_Erdtree_–_Messmer_The_Impaler_Boss_Fight_4k_60FPS-1729710526783.mp4 [Ignored]
+downloads\Kai_Cenat_Reacts_To_Malenia_Phase_2_In_Elden_Ring!_😂-1729956431139.mp4 [Ignored]
+downloads\Link_Click_-_Opening_2_4K_60FPS_VORTEX《时光代理人第二季》-_白鲨JAWS_Leaked_Version-1729896253333.mp4 [Ignored]
 downloads\nokotan-1729695775460.mp4 [Ignored]
 downloads\Okarun_Unlocks_Turbo_Granny_Power_-_DAN_DA_DAN-1729632953110.mp4 [Ignored]
 downloads\Prvnci_blesses_the_culture_with_a_very_satisfying_kittyo-1729894096005.mp4 [Ignored]
+downloads\SHINZO_WO_SASAGEYO!_ATTACK_ON_TITAN_Grissini_Project_Orchestra_(+_choristers)-1729982123932.mp4 [Ignored]
 downloads\THE_SHATTERING_-_Elden_Ring_(If_I_Lose_It_All)-1729695547314.mp4 [Ignored]
 downloads\video-1729622897850.mp4 [Ignored]
 downloads\video-1729624295442.mp4 [Ignored]
 downloads\video-1729624444843.mp4 [Ignored]
-downloads\Я_Использовал_НЕЙРОСЕТЬ,_Чтобы_Создать_Анкету_В_ДАЙВИНЧИКЕ-1729892401471.mp4 [Ignored]
+components\header.html
+components\header.js
 
 
 .git/ [Ignored .git folder]
 
-File: index.html
+File: app.html
+Content:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalTube App</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css">
+</head>
+<body >
+    <!-- Header компонент -->
+    <div id="header-component"></div>
+
+    <!-- Контейнер для загрузки страниц -->
+    <main id="page-content"></main>
+
+    <!-- Download Modal компонент -->
+    <div id="download-modal-component"></div>
+
+    <!-- Скрипты -->
+    <script src="app.js"></script>
+</body>
+</html>
+
+File: app.js
+Content:
+const { ipcRenderer } = require('electron');
+const path = require('path');
+const fs = require('fs');
+const Plyr = require('plyr');
+const ffprobe = require('ffprobe-static');
+const ffmpeg = require('fluent-ffmpeg');
+const moment = require('moment');
+
+
+
+const loadedScripts = {};
+window.currentVideo = null;
+
+// И добавьте функцию для установки текущего видео:
+function setCurrentVideo(videoPath) {
+    window.currentVideo = videoPath;
+}
+
+// Экспортируйте эту функцию:
+window.appFunctions = {
+    setCurrentVideo,
+    loadPage
+};
+
+// Функция для загрузки HTML компонентов
+async function loadComponent(id, componentPath) {
+    try {
+        const response = await fetch(componentPath);
+        if (!response.ok) throw new Error(`Failed to fetch component at ${componentPath}`);
+        const html = await response.text();
+        document.getElementById(id).innerHTML = html;
+    } catch (error) {
+        console.error("Error loading component:", error);
+    }
+}
+
+// Функция для загрузки страниц
+async function loadPage(pageName) {
+    try {
+        const response = await fetch(`./pages/${pageName}.html`);
+        if (!response.ok) throw new Error(`Failed to fetch page at ./pages/${pageName}.html`);
+        const html = await response.text();
+        document.getElementById("page-content").innerHTML = html;
+
+        // Удаляем предыдущий скрипт страницы, если он существует
+        if (loadedScripts[pageName]) {
+            document.body.removeChild(loadedScripts[pageName]);
+            delete loadedScripts[pageName];
+        }
+
+        // Динамическая загрузка соответствующего JavaScript файла
+        const script = document.createElement('script');
+        script.src = `./pages/${pageName}.js`;
+        script.onload = () => {
+            loadedScripts[pageName] = script;
+        };
+        document.body.appendChild(script);
+    } catch (error) {
+        console.error("Error loading page:", error);
+    }
+}
+
+// Инициализация приложения
+async function initApp() {
+    // Загрузка компонентов
+    await loadComponent("header-component", "./components/header.html");
+
+    // Загрузка начальной страницы
+    await loadPage("index");
+
+    // Инициализация обработчиков событий для header
+    if (!loadedScripts['header']) {
+        const headerScript = document.createElement('script');
+        headerScript.src = './components/header.js';
+        headerScript.onload = () => {
+            loadedScripts['header'] = headerScript;
+        };
+        document.body.appendChild(headerScript);
+    }
+}
+
+
+
+// Запуск инициализации после загрузки DOM
+document.addEventListener("DOMContentLoaded", initApp);
+
+// Обработчик для переключения страниц
+ipcRenderer.on('navigate', (event, pageName) => {
+    loadPage(pageName);
+});
+
+
+ipcRenderer.on('load-video', (event, videoPath) => {
+    if (document.getElementById('video-player')) {
+        // Если элемент плеера существует, отправляем событие загрузки видео
+        document.dispatchEvent(new CustomEvent('video-ready-to-load', { detail: videoPath }));
+    } else {
+        // Если элемент плеера еще не создан, ждем его создания
+        const checkInterval = setInterval(() => {
+            if (document.getElementById('video-player')) {
+                clearInterval(checkInterval);
+                document.dispatchEvent(new CustomEvent('video-ready-to-load', { detail: videoPath }));
+            }
+        }, 100);
+    }
+});
+
+File: main.js
+Content:
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { indexVideos, addActiveDownload, removeActiveDownload } = require('./videoIndexer');
+const path = require('path');
+const fs = require('fs');
+
+const VideoDownloader = require('./downloader');
+const downloader = new VideoDownloader();
+
+const activeDownloads = new Map();
+
+
+let mainWindow;
+let indexedFolders = [];
+
+function createWindow() {
+    mainWindow = new BrowserWindow({
+        width: 1200,
+        height: 800,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            enableRemoteModule: true,
+            webSecurity: false,
+            allowRunningInsecureContent: true
+        }
+    });
+
+    mainWindow.setMenu(null);
+    mainWindow.loadFile('app.html');
+    mainWindow.webContents.openDevTools();
+}
+
+app.whenReady().then(() => {
+    createWindow();
+
+    app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) {
+            createWindow();
+        }
+    });
+
+    // Load settings from settings.json
+    const settingsPath = path.join(app.getPath('userData'), 'settings.json');
+    if (fs.existsSync(settingsPath)) {
+        indexedFolders = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    }
+});
+
+app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+        app.quit();
+    }
+});
+
+// Навигация между страницами
+ipcMain.on('navigate', (event, pageName) => {
+    mainWindow.webContents.send('navigate', pageName);
+});
+
+ipcMain.on('get-folders', (event) => {
+    event.reply('load-folders', indexedFolders);
+});
+
+ipcMain.on('add-folder', (event) => {
+    dialog.showOpenDialog({
+        properties: ['openDirectory']
+    }).then(result => {
+        if (!result.canceled) {
+            const newFolder = result.filePaths[0];
+            if (!indexedFolders.includes(newFolder)) {
+                indexedFolders.push(newFolder);
+                saveSettings();
+                event.reply('load-folders', indexedFolders);
+            }
+        }
+    });
+});
+
+ipcMain.on('remove-folder', (event, folder) => {
+    indexedFolders = indexedFolders.filter(f => f !== folder);
+    saveSettings();
+    event.reply('load-folders', indexedFolders);
+});
+
+ipcMain.on('index-videos', (event) => {
+    const downloadPath = path.join(process.cwd(), 'downloads');
+    const videos = indexVideos([downloadPath]);
+    
+    const filteredVideos = videos.filter(video => 
+        !Array.from(activeDownloads.values()).some(download => 
+            download.path === video
+        )
+    );
+    
+    event.reply('video-list', filteredVideos);
+});
+
+ipcMain.on('open-video', (event, videoPath) => {
+    if (fs.existsSync(videoPath)) {
+        mainWindow.webContents.send('navigate', 'player');
+        // Используем setTimeout, чтобы дать время на загрузку страницы плеера
+        setTimeout(() => {
+            mainWindow.webContents.send('load-video', videoPath);
+        }, 100);
+    } else {
+        mainWindow.webContents.send('video-not-found', videoPath);
+    }
+});
+
+ipcMain.handle('get-video-info', async (event, videoUrl) => {
+    try {
+        return await downloader.getVideoInfo(videoUrl);
+    } catch (error) {
+        throw error;
+    }
+});
+
+ipcMain.handle('download-video', async (event, { videoUrl, videoFormat, audioFormat }) => {
+    try {
+        const downloadId = Date.now().toString();
+        const tempPath = path.join(app.getPath('temp'), `${downloadId}.mp4`);
+        
+        // Добавляем загрузку в активные
+        activeDownloads.set(downloadId, {
+            id: downloadId,
+            url: videoUrl,
+            status: 'pending',
+            progress: 0,
+            tempPath
+        });
+        
+        // Сообщаем всем окнам об обновлении списка загрузок
+        BrowserWindow.getAllWindows().forEach(win => {
+            win.webContents.send('download-update', Array.from(activeDownloads.values()));
+        });
+
+        // Начинаем загрузку
+        activeDownloads.get(downloadId).status = 'downloading';
+        updateDownloadStatus(downloadId);
+        
+        const result = await downloader.downloadVideo(videoUrl, videoFormat, audioFormat);
+        
+        // Обновляем статус на добавление метаданных
+        activeDownloads.get(downloadId).status = 'meta';
+        updateDownloadStatus(downloadId);
+        
+        // После успешной загрузки
+        activeDownloads.delete(downloadId);
+        updateDownloadStatus(downloadId, true);
+        
+        return result;
+    } catch (error) {
+        throw error;
+    }
+});
+
+
+function updateDownloadStatus(downloadId, finished = false) {
+    BrowserWindow.getAllWindows().forEach(win => {
+        if (finished) {
+            win.webContents.send('download-finished', downloadId);
+        } else {
+            win.webContents.send('download-update', Array.from(activeDownloads.values()));
+        }
+    });
+}
+
+ipcMain.handle('get-active-downloads', () => {
+    return Array.from(activeDownloads.values());
+  });
+
+function saveSettings() {
+    const settingsPath = path.join(app.getPath('userData'), 'settings.json');
+    fs.writeFileSync(settingsPath, JSON.stringify(indexedFolders, null, 2));
+}
+
+File: pages\index.html
 Content:
 <!DOCTYPE html>
 <html lang="en">
@@ -182,90 +503,140 @@ Content:
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <div class="logo">LocalTube</div>
-        <div class="search-container">
-            <input type="text" id="search" placeholder="Search videos...">
-        </div>
-        <div class="header-buttons">
-            <button id="download-button">⬇️</button>
-            <button id="settings-button">⚙️</button>
-            <button id="index-button">INDX</button>
-            <label class="switch">
-                <input type="checkbox" id="theme-toggle">
-                <span class="slider round"></span>
-            </label>
-        </div>
-    </header>
-
     <main>
         <div class="video-container">
             <div id="video-grid" class="video-grid"></div>
         </div>
     </main>
 
-    <div id="download-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Download Video</h2>
-                <span class="close">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="input-group">
-                    <label for="video-url">YouTube URL:</label>
-                    <input type="text" id="video-url" placeholder="https://www.youtube.com/watch?v=...">
-                </div>
-                <div id="quality-section" style="display: none;">
-                    <label for="quality-select">Select Quality:</label>
-                    <select id="quality-select"></select>
-                </div>
-                <div id="download-status"></div>
-            </div>
-            <div class="modal-footer">
-                <button id="check-url" class="primary-button">Check Video</button>
-                <button id="start-download" class="primary-button" style="display: none;">Download</button>
-            </div>
-        </div>
-    </div>
-    <script src="renderer.js"></script>
+    <!-- <script src="renderer.js"></script> -->
 
 </body>
 </html>
 
 
-File: package.json
+File: pages\index.js
 Content:
-{
-  "name": "localtube",
-  "version": "1.0.0",
-  "description": "",
-  "main": "main.js",
-  "scripts": {
-    "start": "electron ."
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "electron": "^31.4.0",
-    "music-metadata": "^10.2.0"
-  },
-  "dependencies": {
-    "@ffmpeg-installer/ffmpeg": "^1.1.0",
-    "ffmetadata": "^1.7.0",
-    "ffmpeg-installer": "^1.0.2",
-    "ffprobe-static": "^3.1.0",
-    "fluent-ffmpeg": "^2.1.3",
-    "moment": "^2.30.1",
-    "mp4box": "^0.5.2",
-    "node-fetch": "^2.6.7",
-    "node-ffmpeg-installer": "^1.1.2",
-    "plyr": "^3.7.8"
-  }
-}
 
+(function() {
+    console.log("Index page loaded");
 
-File: player.html
+    let videoGrid;
+    let allVideos = [];
+    const downloadPath = path.join(process.cwd(), 'downloads');
+
+    function initIndex() {
+        videoGrid = document.getElementById('video-grid');
+        if (!videoGrid) {
+            console.error('Video grid element not found');
+            return;
+        }
+
+        ipcRenderer.send('index-videos');
+    }
+
+    function displayVideos(videos) {
+        if (!videoGrid) return;
+
+        videoGrid.innerHTML = '';
+        if (videos.length === 0) {
+            videoGrid.innerHTML = '<p>No videos found in the downloads folder.</p>';
+            return;
+        }
+        
+        const gridWrapper = document.createElement('div');
+        gridWrapper.className = 'grid-wrapper';
+        
+        videos.forEach(videoPath => {
+            if (!fs.existsSync(videoPath)) {
+                return; // Пропускаем несуществующие файлы
+            }
+
+            const videoCard = createVideoCard(videoPath);
+            gridWrapper.appendChild(videoCard);
+        });
+        
+        videoGrid.appendChild(gridWrapper);
+    }
+
+    function createVideoCard(videoPath) {
+        const videoCard = document.createElement('div');
+        videoCard.className = 'video-card';
+
+        const videoElement = document.createElement('video');
+        videoElement.src = videoPath;
+        videoElement.preload = 'metadata';
+        videoElement.className = 'video-thumbnail';
+
+        videoElement.addEventListener('loadedmetadata', () => {
+            videoElement.currentTime = videoElement.duration / 3;
+        });
+
+        videoElement.addEventListener('seeked', () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            canvas.getContext('2d').drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+            videoElement.poster = canvas.toDataURL();
+        });
+
+        const videoInfo = document.createElement('div');
+        videoInfo.className = 'video-card-info';
+        
+        const title = path.basename(videoPath, path.extname(videoPath))
+            .replace(/-\d+$/, '')
+            .replace(/_/g, ' ');
+            
+        videoInfo.innerHTML = `
+            <div class="video-card-title">${title}</div>
+        `;
+
+        videoCard.appendChild(videoElement);
+        videoCard.appendChild(videoInfo);
+
+        videoCard.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (fs.existsSync(videoPath)) {
+                window.appFunctions.setCurrentVideo(videoPath);
+                window.appFunctions.loadPage('player');
+            } else {
+                alert('Video file not found');
+                updateVideoList();
+            }
+        });
+
+        return videoCard;
+    }
+
+    function updateVideoList() {
+        if (fs.existsSync(downloadPath)) {
+            ipcRenderer.send('index-videos');
+        }
+    }
+
+    // Обработчики событий
+    ipcRenderer.on('video-list', (event, videos) => {
+        allVideos = videos.filter(video => fs.existsSync(video));
+        displayVideos(allVideos);
+    });
+
+    ipcRenderer.on('video-download-complete', (event, videoPath) => {
+        if (fs.existsSync(videoPath)) {
+            setTimeout(updateVideoList, 1000);
+        }
+    });
+
+    // Инициализация страницы
+    initIndex();
+
+    // Экспорт функций, которые могут понадобиться извне
+    window.indexFunctions = {
+        updateVideoList,
+        displayVideos
+    };
+})();
+
+File: pages\player.html
 Content:
 <!DOCTYPE html>
 <html lang="en">
@@ -276,22 +647,9 @@ Content:
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css">
 </head>
-<body data-page="player">
-    <header>
-        <a href="#" id="back-button" class="logo">LocalTube</a>
-        <div class="search-container">
-            <input type="text" id="search" placeholder="Search videos...">
-        </div>
-        <div class="header-buttons">
-            <button id="settings-button">⚙️</button>
-            <label class="switch">
-                <input type="checkbox" id="theme-toggle">
-                <span class="slider round"></span>
-            </label>
-        </div>
-    </header>
+<body>
 
-    <main>
+    <main class="main-player">
         <div class="video-container">
             <div id="player-container">
                 <video id="video-player" controls></video>
@@ -322,872 +680,176 @@ Content:
 </html>
 
 
-File: renderer.js
+File: pages\player.js
 Content:
-const { ipcRenderer } = require('electron');
-const path = require('path');
-const fs = require('fs');
+(function() {
+    console.log("Player page loaded");
 
+    let videoPlayer, videoTitle, videoMeta, descriptionText, showMoreBtn, backButton, player;
 
-const ffmpeg = require('fluent-ffmpeg');
+    function initPlayer() {
+        videoPlayer = document.getElementById('video-player');
+        videoTitle = document.getElementById('video-title');
+        videoMeta = document.getElementById('video-meta');
+        descriptionText = document.getElementById('description-text');
+        showMoreBtn = document.getElementById('show-more');
+        backButton = document.getElementById('back-button');
 
-const videoGrid = document.getElementById('video-grid');
-const settingsButton = document.getElementById('settings-button');
-const indexButton = document.getElementById('index-button');
-const themeToggle = document.getElementById('theme-toggle');
-const searchInput = document.getElementById('search');
-
-
-const downloadModal = document.getElementById('download-modal');
-const closeBtn = document.querySelector('.close');
-const videoUrlInput = document.getElementById('video-url');
-const qualitySelect = document.getElementById('quality-select');
-const qualitySection = document.getElementById('quality-section');
-const checkUrlBtn = document.getElementById('check-url');
-const startDownloadBtn = document.getElementById('start-download');
-const downloadStatus = document.getElementById('download-status');
-const downloadButton = document.getElementById('download-button');
-
-function toggleTheme() {
-    document.body.classList.toggle('dark-theme');
-    localStorage.setItem('dark-theme', document.body.classList.contains('dark-theme'));
-}
-
-if (localStorage.getItem('dark-theme') === 'true') {
-    document.body.classList.add('dark-theme');
-    themeToggle.checked = true;
-}
-
-themeToggle.addEventListener('change', toggleTheme);
-
-settingsButton.addEventListener('click', () => {
-    ipcRenderer.send('open-settings');
-});
-
-indexButton.addEventListener('click', () => {
-    ipcRenderer.send('index-videos');
-});
-
-let allVideos = [];
-const downloadPath = path.join(process.cwd(), 'downloads');
-
-ipcRenderer.on('video-list', (event, videos) => {
-    allVideos = videos.filter(video => fs.existsSync(video));
-    displayVideos(allVideos);
-});
-
-
-
-// В renderer.js
-function displayVideos(videos) {
-    videoGrid.innerHTML = '';
-    if (videos.length === 0) {
-        videoGrid.innerHTML = '<p>No videos found in the downloads folder.</p>';
-        return;
-    }
-    
-    const gridWrapper = document.createElement('div');
-    gridWrapper.className = 'grid-wrapper';
-    
-    videos.forEach(videoPath => {
-        if (!fs.existsSync(videoPath)) {
-            return; // Пропускаем несуществующие файлы
-        }
-
-        const videoCard = document.createElement('div');
-        videoCard.className = 'video-card';
-
-        const videoElement = document.createElement('video');
-        videoElement.src = videoPath;
-        videoElement.preload = 'metadata';
-        videoElement.className = 'video-thumbnail';
-
-        // Возвращаем генерацию превью
-        videoElement.addEventListener('loadedmetadata', () => {
-            videoElement.currentTime = videoElement.duration / 3;
-        });
-
-        videoElement.addEventListener('seeked', () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = videoElement.videoWidth;
-            canvas.height = videoElement.videoHeight;
-            canvas.getContext('2d').drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-            videoElement.poster = canvas.toDataURL();
-        });
-
-        const videoInfo = document.createElement('div');
-        videoInfo.className = 'video-card-info';
-        
-        const title = path.basename(videoPath, path.extname(videoPath))
-            .replace(/-\d+$/, '')
-            .replace(/_/g, ' ');
-            
-        videoInfo.innerHTML = `
-            <div class="video-card-title">${title}</div>
-        `;
-
-        videoCard.appendChild(videoElement);
-        videoCard.appendChild(videoInfo);
-
-        videoCard.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (fs.existsSync(videoPath)) {
-                ipcRenderer.send('open-video', videoPath);
-            } else {
-                alert('Video file not found');
-                updateVideoList(); // Обновляем список при обнаружении отсутствующего файла
+        // Plyr initialization
+        player = new Plyr(videoPlayer, {
+            controls: [
+                'play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'
+            ],
+            settings: ['captions', 'quality', 'speed', 'loop'],
+            previewThumbnails: {
+                enabled: false,
             }
         });
 
-        gridWrapper.appendChild(videoCard);
-    });
-    
-    videoGrid.appendChild(gridWrapper);
-}
-// Добавьте функцию обновления списка видео
-function updateVideoList() {
-    const downloadPath = path.join(process.cwd(), 'downloads');
-    if (fs.existsSync(downloadPath)) {
-        ipcRenderer.send('index-videos');
-    }
-}
+        // Загрузка текущего видео
+        if (window.currentVideo) {
+            filePath = window.currentVideo;
+            videoPlayer.src = filePath;
+            try {
+                loadVideoMetadata(filePath);
 
-// Обработчик завершения загрузки видео
-ipcRenderer.on('video-download-complete', (event, videoPath) => {
-    if (fs.existsSync(videoPath)) {
-        setTimeout(() => {
-            updateVideoList();
-        }, 1000); // Даём время на завершение всех операций с файлом
-    }
-});
+                player.source = {
+                    type: 'video',
+                    sources: [{ src: filePath, type: 'video/mp4' }],
+                };
+               
+                player.on('loadedmetadata', () => {
+                    player.play().catch(error => {
+                        console.error('Error auto-playing video:', error);
+                    });
+                });
 
-searchInput.addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    const filteredVideos = allVideos.filter(video => 
-        path.basename(video).toLowerCase().includes(searchTerm)
-    );
-    displayVideos(filteredVideos);
-});
+            } catch (error) {
+                console.error('Error loading video:', error);
+            }
+        } else {
+            console.error('No video selected');
+            // Можно добавить здесь логику для возврата на главную страницу
+        }
 
-
-downloadButton.addEventListener('click', async () => {
-    const url = prompt('Enter YouTube URL:');
-    if (!url) return;
-
-    try {
-        const videoInfo = await ipcRenderer.invoke('get-video-info', url);
-        
-        // Create quality selection dialog
-        const qualities = videoInfo.qualities.video;
-        const qualityOptions = Object.entries(qualities)
-            .map(([id, info]) => ({
-                id,
-                label: `${info.height}p${info.fps > 30 ? info.fps : ''} ${info.dynamic_range}`
-            }))
-            .sort((a, b) => parseInt(b.label) - parseInt(a.label));
-
-        const quality = prompt(
-            `Select quality:\n${qualityOptions.map((q, i) => `${i + 1}: ${q.label}`).join('\n')}`,
-            '1'
-        );
-
-        if (!quality) return;
-
-        const selectedQuality = qualityOptions[parseInt(quality) - 1];
-        if (!selectedQuality) return;
-
-        // Start download
-        const result = await ipcRenderer.invoke('download-video', {
-            videoUrl: url,
-            videoFormat: selectedQuality.id,
-            audioFormat: 'bestaudio'
+        showMoreBtn.addEventListener('click', () => {
+            const isExpanded = descriptionText.style.maxHeight;
+            descriptionText.style.maxHeight = isExpanded ? null : `${descriptionText.scrollHeight}px`;
+            showMoreBtn.textContent = isExpanded ? 'Show more' : 'Show less';
         });
-
-        alert(`Download completed!\nSaved to: ${result.path}`);
-    } catch (error) {
-        alert(`Error: ${error.message}`);
-    }
-});
-
-ipcRenderer.send('index-videos');
-
-
-
-
-downloadButton.addEventListener('click', () => {
-    downloadModal.style.display = 'block';
-    videoUrlInput.focus();
-});
-
-closeBtn.addEventListener('click', () => {
-    downloadModal.style.display = 'none';
-    resetModal();
-});
-
-window.addEventListener('click', (event) => {
-    if (event.target === downloadModal) {
-        downloadModal.style.display = 'none';
-        resetModal();
-    }
-});
-
-function resetModal() {
-    videoUrlInput.value = '';
-    qualitySection.style.display = 'none';
-    startDownloadBtn.style.display = 'none';
-    checkUrlBtn.style.display = 'block';
-    downloadStatus.innerHTML = '';
-    downloadStatus.className = '';
-}
-
-checkUrlBtn.addEventListener('click', async () => {
-    const url = videoUrlInput.value.trim();
-    if (!url) {
-        showStatus('Please enter a valid YouTube URL', 'error');
-        return;
     }
 
-    try {
-        showStatus('Checking video information...', 'info');
-        checkUrlBtn.disabled = true;
-        
-        const videoInfo = await ipcRenderer.invoke('get-video-info', url);
-        
-        // Populate quality select
-        qualitySelect.innerHTML = '';
-        const qualities = videoInfo.qualities.video;
-        Object.entries(qualities)
-            .map(([id, info]) => ({
-                id,
-                label: `${info.height}p${info.fps > 30 ? info.fps : ''} ${info.dynamic_range}`,
-                height: info.height
-            }))
-            .sort((a, b) => b.height - a.height)
-            .forEach(quality => {
-                const option = document.createElement('option');
-                option.value = quality.id;
-                option.textContent = quality.label;
-                qualitySelect.appendChild(option);
+    async function loadVideo(filePath) {
+        videoPlayer.src = filePath;
+        try {
+            await loadVideoMetadata(filePath);
+
+            player.source = {
+                type: 'video',
+                sources: [{ src: filePath, type: 'video/mp4' }],
+            };
+           
+            player.on('loadedmetadata', () => {
+                player.play().catch(error => {
+                    console.error('Error auto-playing video:', error);
+                });
             });
 
-        qualitySection.style.display = 'block';
-        startDownloadBtn.style.display = 'block';
-        checkUrlBtn.style.display = 'none';
-        showStatus('Select video quality and click Download', 'success');
-    } catch (error) {
-        showStatus(`Error: ${error.message}`, 'error');
-    } finally {
-        checkUrlBtn.disabled = false;
+        } catch (error) {
+            console.error('Error loading video:', error);
+        }
     }
-});
 
-startDownloadBtn.addEventListener('click', async () => {
-    const url = videoUrlInput.value.trim();
-    const selectedQuality = qualitySelect.value;
+    function loadVideoMetadata(filePath) {
+        return new Promise((resolve, reject) => {
+            ffmpeg.setFfprobePath(ffprobe.path);
+            
+            ffmpeg.ffprobe(filePath, (err, metadata) => {
+                if (err) {
+                    console.error('Error reading metadata:', err);
+                    reject(err);
+                    return;
+                }
 
-    try {
-        showStatus('Downloading video...', 'info');
-        startDownloadBtn.disabled = true;
-        
-        const result = await ipcRenderer.invoke('download-video', {
-            videoUrl: url,
-            videoFormat: selectedQuality,
-            audioFormat: 'bestaudio'
+                try {
+                    const videoStream = metadata.streams.find(stream => stream.codec_type === 'video');
+                    
+                    const title = path.basename(filePath, path.extname(filePath))
+                        .replace(/-\d+$/, '')
+                        .replace(/_/g, ' ');
+
+                    videoTitle.textContent = title;
+                    videoMeta.textContent = metadata.format.format_name || 'Unknown format';
+                    descriptionText.textContent = 'No description available';
+
+                    resolve({
+                        title: title,
+                        format: metadata.format.format_name || 'Unknown format'
+                    });
+                } catch (error) {
+                    console.error('Error processing metadata:', error);
+                    reject(error);
+                }
+            });
         });
-
-        showStatus('Download completed!', 'success');
-        
-        updateVideoList();
-        
-        // Close modal and open player
-        setTimeout(() => {
-            downloadModal.style.display = 'none';
-            resetModal();
-            ipcRenderer.send('open-video', result.path);
-        }, 1500);
-    } catch (error) {
-        showStatus(`Error: ${error.message}`, 'error');
-        startDownloadBtn.disabled = false;
     }
+
+    function formatBitrate(bitrate) {
+        if (!bitrate) return 'Unknown bitrate';
+        return `${Math.round(bitrate / 1000)} kbps`;
+    }
+
+    // Инициализация плеера при загрузке страницы
+    initPlayer();
+})();
+
+File: pages\settings.html
+Content:
+
+    <main>
+        <h2>Indexed Folders</h2>
+        <ul id="folder-list"></ul>
+        <button id="add-folder">Add Folder</button>
+        <label class="switch">
+            <input type="checkbox" id="theme-toggle">
+            <span class="slider round"></span>
+        </label>
+    </main>
+    <script src="settings.js"></script>
+
+File: pages\settings.js
+Content:
+
+const folderList = document.getElementById('folder-list');
+const addFolderButton = document.getElementById('add-folder');
+const backButton = document.getElementById('back-button');
+
+themeToggle.addEventListener('change', toggleTheme);
+
+// Загрузка сохраненных папок
+ipcRenderer.on('load-folders', (event, folders) => {
+    folderList.innerHTML = '';
+    folders.forEach(folder => {
+        const li = document.createElement('li');
+        li.textContent = folder;
+        const removeButton = document.createElement('button');
+        removeButton.textContent = 'Remove';
+        removeButton.onclick = () => ipcRenderer.send('remove-folder', folder);
+        li.appendChild(removeButton);
+        folderList.appendChild(li);
+    });
 });
 
-function showStatus(message, type) {
-    downloadStatus.innerHTML = type === 'info' 
-        ? `<div class="loading-spinner"></div>${message}`
-        : message;
-    downloadStatus.className = `status-${type}`;
-}
+addFolderButton.addEventListener('click', () => {
+    ipcRenderer.send('add-folder');
+});
 
-File: styles.css
-Content:
-:root {
-    --background-color: #f9f9f9;
-    --text-color: #333;
-    --header-bg: #fff;
-    --card-bg: #fff;
-    --primary-color: #065fd4;
-}
+backButton.addEventListener('click', () => {
+    ipcRenderer.send('back-to-main');
+});
 
-.dark-theme {
-    --background-color: #181818;
-    --text-color: #fff;
-    --header-bg: #202020;
-    --card-bg: #282828;
-    --primary-color: #3ea6ff;
-}
+ipcRenderer.send('get-folders');
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: 'Roboto', Arial, sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-color);
-    line-height: 1.6;
-}
-
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    background-color: var(--header-bg);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.logo {
-    font-size: 24px;
-    font-weight: bold;
-    color: var(--primary-color);
-}
-
-.search-container {
-    flex-grow: 1;
-    margin: 0 20px;
-}
-
-#search {
-    width: 100%;
-    padding: 10px;
-    border-radius: 20px;
-    border: 1px solid #ccc;
-    background-color: var(--background-color);
-    color: var(--text-color);
-}
-
-.header-buttons {
-    display: flex;
-    align-items: center;
-}
-
-#select-file {
-    padding: 10px 20px;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-right: 20px;
-}
-
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 34px;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 34px;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-
-input:checked + .slider {
-    background-color: var(--primary-color);
-}
-
-input:checked + .slider:before {
-    transform: translateX(26px);
-}
-
-body[data-page="player"] main {
-    display: flex;
-    max-width: 1600px;
-    margin: 20px auto;
-    padding: 0 20px;
-}
-
-main {
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 0;
-}
-
-.video-container {
-    flex: 1;
-    margin: 0;
-}
-
-#player-container {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    background-color: #000;
-    border-radius: 12px;
-    overflow: hidden;
-    position: relative;
-    margin: 0 auto;
-}
-
-#video-player {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%; /* Масштабируем по ширине */
-    height: 100%; /* Масштабируем по высоте */
-    object-fit: contain; /* Подгоняем видео по размеру контейнера */
-    transform: translate(-50%, -50%); /* Центрируем видео */
-}
-
-.video-info {
-    margin-top: 20px;
-}
-
-#video-title {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-#video-meta {
-    color: #606060;
-    margin-bottom: 10px;
-}
-
-.actions {
-    display: flex;
-    margin-bottom: 20px;
-}
-
-.actions button {
-    background-color: var(--card-bg);
-    border: none;
-    padding: 10px 20px;
-    margin-right: 10px;
-    border-radius: 18px;
-    cursor: pointer;
-    color: var(--text-color);
-}
-
-#video-description {
-    background-color: var(--card-bg);
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-}
-
-#show-more {
-    background-color: transparent;
-    border: none;
-    color: var(--primary-color);
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-.recommendations {
-    width: 400px;
-    padding: 20px;
-}
-
-
-.video-card-info {
-    padding: 10px;
-}
-
-.video-card-title {
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.video-card-meta {
-    font-size: 12px;
-    color: #606060;
-}
-
-/* Plyr custom styles */
-.plyr--full-ui input[type=range] {
-    color: var(--primary-color);
-}
-
-.plyr__control--overlaid {
-    background: var(--primary-color);
-}
-
-.plyr--video .plyr__control.plyr__tab-focus,
-.plyr--video .plyr__control:hover,
-.plyr--video .plyr__control[aria-expanded=true] {
-    background: var(--primary-color);
-}
-
-.plyr__control.plyr__tab-focus {
-    box-shadow: 0 0 0 5px rgba(var(--primary-color-rgb), 0.5);
-}
-
-.plyr__menu__container .plyr__control[role=menuitemradio][aria-checked=true]::before {
-    background: var(--primary-color);
-}
-
-@media (max-width: 1200px) {
-    main {
-        flex-direction: column;
-    }
-
-    .video-container {
-        margin-right: 0;
-        margin-bottom: 20px;
-    }
-
-    .recommendations {
-        width: 100%;
-    }
-}
-
-.settings-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-#folder-list {
-    list-style-type: none;
-    padding: 0;
-}
-
-#folder-list li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background-color: var(--card-bg);
-    margin-bottom: 10px;
-    border-radius: 4px;
-}
-
-#folder-list li button {
-    background-color: #ff4444;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-#add-folder {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 20px;
-}
-
-.video-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 20px;
-    padding: 20px;
-}
-
-
-.video-card-info {
-    padding: 10px;
-}
-
-.video-card-title {
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.video-card-meta {
-    font-size: 0.8em;
-    color: #777;
-}
-
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(5px);
-}
-
-.modal-content {
-    background-color: var(--card-bg);
-    margin: 15% auto;
-    padding: 20px;
-    border-radius: 12px;
-    width: 80%;
-    max-width: 500px;
-    position: relative;
-    animation: modalSlideIn 0.3s ease-out;
-}
-
-@keyframes modalSlideIn {
-    from {
-        transform: translateY(-20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.modal-header h2 {
-    margin: 0;
-    color: var(--text-color);
-}
-
-.close {
-    color: var(--text-color);
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.close:hover {
-    color: var(--primary-color);
-}
-
-.modal-body {
-    margin-bottom: 20px;
-}
-
-.input-group {
-    margin-bottom: 15px;
-}
-
-.input-group label {
-    display: block;
-    margin-bottom: 5px;
-    color: var(--text-color);
-}
-
-.input-group input,
-.input-group select {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: var(--background-color);
-    color: var(--text-color);
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-}
-
-.primary-button {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.primary-button:hover {
-    background-color: var(--primary-color-hover);
-}
-
-#download-status {
-    margin-top: 10px;
-    padding: 10px;
-    border-radius: 4px;
-}
-
-.status-info {
-    background-color: var(--background-color);
-    color: var(--text-color);
-}
-
-.status-success {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.status-error {
-    background-color: #f44336;
-    color: white;
-}
-
-/* Loading spinner */
-.loading-spinner {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid rgba(255,255,255,.3);
-    border-radius: 50%;
-    border-top-color: #fff;
-    animation: spin 1s ease-in-out infinite;
-    margin-right: 10px;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-.grid-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    width: 100%;
-    padding: 20px;
-}
-
-
-.video-grid {
-    width: 100%;
-    margin: 0 auto;
-}
-
-/* Добавим стили для адаптивности */
-@media (max-width: 1200px) {
-    .grid-wrapper {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    }
-}
-
-@media (max-width: 768px) {
-    .grid-wrapper {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    }
-}
-
-.video-card {
-    flex: 0 0 calc(25% - 20px); /* 4 карточки в ряд с учетом отступов */
-    min-width: 250px; /* минимальная ширина карточки */
-    background-color: var(--card-bg);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: transform 0.2s;
-    cursor: pointer;
-    position: relative;
-}
-
-.video-card:hover {
-    transform: scale(1.05);
-}
-
-.video-thumbnail {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-    background-color: #222; /* темный фон для превью */
-}
-
-.video-card-info {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 10px;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-    color: #fff;
-}
-
-.video-card-title {
-    font-weight: bold;
-    margin-bottom: 5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: #fff; /* белый текст для лучшей читаемости */
-}
-
-
-.video-card-meta {
-    font-size: 0.8em;
-    color: rgba(255, 255, 255, 0.8);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-@media (max-width: 600px) {
-    .grid-wrapper {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    }
-}
-
-@media (max-width: 1200px) {
-    .video-card {
-        flex: 0 0 calc(33.333% - 20px); /* 3 карточки в ряд */
-    }
-}
-
-@media (max-width: 900px) {
-    .video-card {
-        flex: 0 0 calc(50% - 20px); /* 2 карточки в ряд */
-    }
-}
-
-@media (max-width: 600px) {
-    .video-card {
-        flex: 0 0 calc(100% - 20px); /* 1 карточка в ряд */
-    }
-}
-
-.logo {
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-}
 
 node_modules\.bin [Ignored]
 
@@ -1417,11 +1079,17 @@ downloads\Delta_vs_John_Smith_anime_theeminenceinshadow_delta_johnsmith-17297021
 
 downloads\Elden_Ring_Shadow_Of_The_Erdtree_–_Messmer_The_Impaler_Boss_Fight_4k_60FPS-1729710526783.mp4 [Ignored]
 
+downloads\Kai_Cenat_Reacts_To_Malenia_Phase_2_In_Elden_Ring!_😂-1729956431139.mp4 [Ignored]
+
+downloads\Link_Click_-_Opening_2_4K_60FPS_VORTEX《时光代理人第二季》-_白鲨JAWS_Leaked_Version-1729896253333.mp4 [Ignored]
+
 downloads\nokotan-1729695775460.mp4 [Ignored]
 
 downloads\Okarun_Unlocks_Turbo_Granny_Power_-_DAN_DA_DAN-1729632953110.mp4 [Ignored]
 
 downloads\Prvnci_blesses_the_culture_with_a_very_satisfying_kittyo-1729894096005.mp4 [Ignored]
+
+downloads\SHINZO_WO_SASAGEYO!_ATTACK_ON_TITAN_Grissini_Project_Orchestra_(+_choristers)-1729982123932.mp4 [Ignored]
 
 downloads\THE_SHATTERING_-_Elden_Ring_(If_I_Lose_It_All)-1729695547314.mp4 [Ignored]
 
@@ -1431,5 +1099,369 @@ downloads\video-1729624295442.mp4 [Ignored]
 
 downloads\video-1729624444843.mp4 [Ignored]
 
-downloads\Я_Использовал_НЕЙРОСЕТЬ,_Чтобы_Создать_Анкету_В_ДАЙВИНЧИКЕ-1729892401471.mp4 [Ignored]
+File: components\header.html
+Content:
+<!-- components/header.html -->
+<header>
+    <div class="logo" id="logo" onclick="loadPage('index')">LocalTube</div>
+    <div class="search-container">
+        <input type="text" id="search" placeholder="Search videos...">
+    </div>
+    <div class="header-buttons">
+        <div id="download-button" class="header-icon">⬇️</div>
+        <div id="settings-button" class="header-icon" onclick="loadPage('settings')">⚙️ Settings</div>
+        <label class="switch">
+            <input type="checkbox" id="theme-toggle">
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <script src="header.js"></script>
+</header>
+
+<div id="download-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="tab-container">
+                <button class="tab-button active" data-tab="download">Download Video</button>
+                <button class="tab-button" data-tab="active">Active Downloads</button>
+            </div>
+            <span class="close">&times;</span>
+        </div>
+
+        <!-- Вкладка Download Video -->
+        <div id="download-tab" class="tab-content active">
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="video-url">YouTube URL:</label>
+                    <input type="text" id="video-url" placeholder="https://www.youtube.com/watch?v=...">
+                </div>
+                <div id="quality-section" style="display: none;">
+                    <label for="quality-select">Select Quality:</label>
+                    <select id="quality-select"></select>
+                </div>
+                <div id="download-status"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="check-url" class="primary-button">Check Video</button>
+                <button id="start-download" class="primary-button" style="display: none;">Download</button>
+            </div>
+        </div>
+
+        <!-- Вкладка Active Downloads -->
+        <div id="active-tab" class="tab-content">
+            <div class="active-downloads-container">
+                <div id="active-downloads-list">
+                    <!-- Активные загрузки будут добавляться сюда динамически -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+File: components\header.js
+Content:
+
+const settingsButton = document.getElementById('settings-button');
+const logoButton = document.getElementById('logo');
+const themeToggle = document.getElementById('theme-toggle');
+const searchInput = document.getElementById('search');
+const downloadButton = document.getElementById('download-button');
+
+const downloadModal = document.getElementById('download-modal');
+const closeBtn = document.querySelector('.close');
+const videoUrlInput = document.getElementById('video-url');
+const qualitySelect = document.getElementById('quality-select');
+const qualitySection = document.getElementById('quality-section');
+const checkUrlBtn = document.getElementById('check-url');
+const startDownloadBtn = document.getElementById('start-download');
+const downloadStatus = document.getElementById('download-status');
+
+
+function toggleTheme() {
+    document.body.classList.toggle('dark-theme');
+    localStorage.setItem('dark-theme', document.body.classList.contains('dark-theme'));
+}
+
+if (localStorage.getItem('dark-theme') === 'true') {
+    document.body.classList.add('dark-theme');
+    themeToggle.checked = true;
+}
+
+themeToggle.addEventListener('change', toggleTheme);
+
+
+let activeDownloads = new Map();
+
+function initializeTabs() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    if (!tabButtons.length) return; // Exit if elements aren't found
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabId = button.dataset.tab;
+            const tabContent = document.getElementById(`${tabId}-tab`);
+            
+            // Only proceed if we found the tab content
+            if (!tabContent) {
+                console.error(`Tab content not found for id: ${tabId}-tab`);
+                return;
+            }
+            
+            // Remove active class from all tabs and contents
+            document.querySelectorAll('.tab-button').forEach(btn => 
+                btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => 
+                content.classList.remove('active'));
+            
+            // Add active class to selected tab and content
+            button.classList.add('active');
+            tabContent.classList.add('active');
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initializeTabs);
+
+async function initializeDownloads() {
+    try {
+        const downloads = await ipcRenderer.invoke('get-active-downloads');
+        activeDownloads = new Map(downloads.map(d => [d.id, d]));
+        updateActiveDownloadsList();
+    } catch (error) {
+        console.error('Failed to initialize downloads:', error);
+    }
+}
+
+
+document.addEventListener('DOMContentLoaded', initializeDownloads);
+
+
+ipcRenderer.on('download-update', (event, downloads) => {
+    activeDownloads = new Map(downloads.map(d => [d.id, d]));
+    updateActiveDownloadsList();
+});
+
+ipcRenderer.on('download-finished', (event, downloadId) => {
+    const download = activeDownloads.get(downloadId);
+    if (download) {
+        showFinishedNotification(download);
+        activeDownloads.delete(downloadId);
+        updateActiveDownloadsList();
+    }
+});
+
+function showFinishedNotification(download) {
+    const status = document.getElementById('download-status');
+    status.textContent = `Download completed: ${download.url}`;
+    status.className = 'status-success';
+}
+
+function updateActiveDownloads() {
+    ipcRenderer.invoke('get-active-downloads')
+        .then(downloads => {
+            activeDownloads = new Map(downloads);
+            updateActiveDownloadsList();
+        })
+        .catch(error => {
+            console.error('Failed to update active downloads:', error);
+        });
+}
+
+function updateActiveDownloadsList() {
+    const container = document.getElementById('active-downloads-list');
+    container.innerHTML = '';
+    
+    activeDownloads.forEach((download, id) => {
+        const item = createDownloadItemElement(download);
+        container.appendChild(item);
+    });
+}
+
+
+settingsButton.addEventListener('click', () => {
+    ipcRenderer.send('open-settings');
+});
+
+logoButton.addEventListener('click', () => {
+    ipcRenderer.send('index-videos');
+});
+
+searchInput.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const filteredVideos = allVideos.filter(video => 
+        path.basename(video).toLowerCase().includes(searchTerm)
+    );
+    displayVideos(filteredVideos);
+});
+
+downloadButton.addEventListener('click', () => {
+    downloadModal.style.display = 'block';
+    videoUrlInput.focus();
+    initializeTabs(); 
+});
+
+closeBtn.addEventListener('click', () => {
+    downloadModal.style.display = 'none';
+    resetModal();
+});
+
+window.addEventListener('click', (event) => {
+    if (event.target === downloadModal) {
+        downloadModal.style.display = 'none';
+        resetModal();
+    }
+});
+
+function resetModal() {
+    videoUrlInput.value = '';
+    qualitySection.style.display = 'none';
+    startDownloadBtn.style.display = 'none';
+    checkUrlBtn.style.display = 'block';
+    downloadStatus.innerHTML = '';
+    downloadStatus.className = '';
+}
+// Проверка информации о видео
+checkUrlBtn.addEventListener('click', async () => {
+    const url = videoUrlInput.value.trim();
+    if (!url) {
+        showStatus('Please enter a valid YouTube URL', 'error');
+        return;
+    }
+
+    try {
+        showStatus('Checking video information...', 'info');
+        checkUrlBtn.disabled = true;
+
+        const videoInfo = await ipcRenderer.invoke('get-video-info', url);
+        qualitySelect.innerHTML = '';
+        const qualities = videoInfo.qualities.video;
+
+        Object.entries(qualities)
+            .map(([id, info]) => ({
+                id,
+                label: `${info.height}p${info.fps > 30 ? info.fps : ''} ${info.dynamic_range}`,
+                height: info.height
+            }))
+            .sort((a, b) => b.height - a.height)
+            .forEach(quality => {
+                const option = document.createElement('option');
+                option.value = quality.id;
+                option.textContent = quality.label;
+                qualitySelect.appendChild(option);
+            });
+
+        qualitySection.style.display = 'block';
+        startDownloadBtn.style.display = 'block';
+        checkUrlBtn.style.display = 'none';
+        showStatus('Select video quality and click Download', 'success');
+    } catch (error) {
+        showStatus(`Error: ${error.message}`, 'error');
+    } finally {
+        checkUrlBtn.disabled = false;
+    }
+});
+
+// Начало загрузки видео
+startDownloadBtn.addEventListener('click', async () => {
+    const url = videoUrlInput.value.trim();
+    const selectedQuality = qualitySelect.value;
+    
+    try {
+        // Блокируем кнопку и показываем статус
+        startDownloadBtn.disabled = true;
+        const status = document.getElementById('download-status');
+        status.textContent = 'Starting download...';
+        status.className = 'status-info';
+        
+        const result = await ipcRenderer.invoke('download-video', {
+            videoUrl: url,
+            videoFormat: selectedQuality,
+            audioFormat: 'bestaudio'
+        });
+        
+        // Обновляем UI после успешной загрузки
+        status.textContent = 'Download completed!';
+        status.className = 'status-success';
+        
+        // Переключаемся на вкладку активных загрузок
+        document.querySelector('[data-tab="active"]').click();
+        
+    } catch (error) {
+        const status = document.getElementById('download-status');
+        status.textContent = `Error: ${error.message}`;
+        status.className = 'status-error';
+    } finally {
+        startDownloadBtn.disabled = false;
+    }
+});
+
+function showStatus(message, type) {
+    downloadStatus.innerHTML = type === 'info' 
+        ? `<div class="loading-spinner"></div>${message}`
+        : message;
+    downloadStatus.className = `status-${type}`;
+}
+
+
+document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', () => {
+        const tabId = button.dataset.tab;
+        
+        // Переключаем активную вкладку
+        document.querySelectorAll('.tab-button').forEach(btn => 
+            btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => 
+            content.classList.remove('active'));
+        
+        button.classList.add('active');
+        document.getElementById(`${tabId}-tab`).classList.add('active');
+    });
+});
+
+function addDownloadItem(videoInfo) {
+    const downloadId = Date.now().toString();
+    const downloadItem = createDownloadItemElement(downloadId, videoInfo);
+    
+    document.getElementById('active-downloads-list').appendChild(downloadItem);
+    activeDownloads.set(downloadId, {
+        status: 'pending',
+        info: videoInfo
+    });
+    
+    return downloadId;
+}
+
+function updateDownloadStatus(downloadId, status, progress) {
+    const downloadItem = document.querySelector(`[data-download-id="${downloadId}"]`);
+    if (downloadItem) {
+        downloadItem.className = `download-item status-${status}`;
+        const statusText = downloadItem.querySelector('.download-status');
+        statusText.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        
+        if (status === 'finished') {
+            setTimeout(() => {
+                downloadItem.remove();
+                activeDownloads.delete(downloadId);
+            }, 3000);
+        }
+    }
+}
+
+function createDownloadItemElement(download) {
+    const div = document.createElement('div');
+    div.className = `download-item status-${download.status}`;
+    div.dataset.downloadId = download.id;
+    
+    div.innerHTML = `
+        <div class="download-item-header">
+            <div class="download-title">${download.url}</div>
+            <div class="download-status">${download.status}</div>
+        </div>
+        <div class="download-progress-container">
+            <div class="download-progress-bar"></div>
+        </div>
+    `;
+    
+    return div;
+}
 

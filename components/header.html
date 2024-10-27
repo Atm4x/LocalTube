@@ -1,0 +1,56 @@
+<!-- components/header.html -->
+<header>
+    <div class="logo" id="logo" onclick="loadPage('index')">LocalTube</div>
+    <div class="search-container">
+        <input type="text" id="search" placeholder="Search videos...">
+    </div>
+    <div class="header-buttons">
+        <div id="download-button" class="header-icon">⬇️</div>
+        <div id="settings-button" class="header-icon" onclick="loadPage('settings')">⚙️ Settings</div>
+        <label class="switch">
+            <input type="checkbox" id="theme-toggle">
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <script src="header.js"></script>
+</header>
+
+<div id="download-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="tab-container">
+                <button class="tab-button active" data-tab="download">Download Video</button>
+                <button class="tab-button" data-tab="active">Active Downloads</button>
+            </div>
+            <span class="close">&times;</span>
+        </div>
+
+        <!-- Вкладка Download Video -->
+        <div id="download-tab" class="tab-content active">
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="video-url">YouTube URL:</label>
+                    <input type="text" id="video-url" placeholder="https://www.youtube.com/watch?v=...">
+                </div>
+                <div id="quality-section" style="display: none;">
+                    <label for="quality-select">Select Quality:</label>
+                    <select id="quality-select"></select>
+                </div>
+                <div id="download-status"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="check-url" class="primary-button">Check Video</button>
+                <button id="start-download" class="primary-button" style="display: none;">Download</button>
+            </div>
+        </div>
+
+        <!-- Вкладка Active Downloads -->
+        <div id="active-tab" class="tab-content">
+            <div class="active-downloads-container">
+                <div id="active-downloads-list">
+                    <!-- Активные загрузки будут добавляться сюда динамически -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
