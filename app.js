@@ -5,7 +5,7 @@ const Plyr = require('plyr');
 const ffprobe = require('ffprobe-static');
 const ffmpeg = require('fluent-ffmpeg');
 const moment = require('moment');
-
+let dragPlayer, dragPlayerEnd, toggleClickToPlayState
 
 const VideoPlayerManager = require('./components/video-player-manager');
 window.videoPlayerManager = new VideoPlayerManager();
@@ -38,8 +38,6 @@ async function loadComponent(id, componentPath) {
 
 async function loadPage(pageName) {
     try {
-
-
         // Очищаем предыдущие ресурсы
         cleanupCurrentPage();
         

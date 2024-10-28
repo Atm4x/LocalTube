@@ -10,7 +10,6 @@ const downloader = new VideoDownloader();
 
 const activeDownloads = new Map();
 
-
 let mainWindow;
 let indexedFolders = [];
 
@@ -29,7 +28,7 @@ function createWindow() {
 
     mainWindow.setMenu(null);
     mainWindow.loadFile('app.html');
-    //mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {

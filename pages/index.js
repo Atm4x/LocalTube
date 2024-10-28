@@ -2,11 +2,17 @@
 (function() {
     console.log("Index page loaded");
 
+    if (ipcRenderer) {
+        ipcRenderer.removeAllListeners('video-list');
+        ipcRenderer.removeAllListeners('video-download-complete');
+    };
+
     let videoGrid;
     let allVideos = [];
     const downloadPath = path.join(process.cwd(), 'downloads');
 
     function initIndex() {
+
         videoGrid = document.getElementById('video-grid');
         if (!videoGrid) {
             console.error('Video grid element not found');
@@ -71,6 +77,7 @@
         videoCard.addEventListener('click', (e) => {
             e.preventDefault();
             if (fs.existsSync(videoPath)) {
+                window.resetMaximizedPlayer();
                 window.appFunctions.setCurrentVideo(videoPath);
                 window.appFunctions.loadPage('player');
             } else {

@@ -60,14 +60,16 @@ class VideoDownloader {
 
                     if (statusData.status === 'completed') {
                         clearInterval(checkInterval);
-                        const infoResponse = await fetch(`${this.API_BASE_URL}${statusData.file}?qualities&title&author`, {
+                        const infoResponse = await fetch(`${this.API_BASE_URL}${statusData.file}?qualities&title&author&description&tags`, {
                             headers: { 'X-API-Key': this.API_KEY }
                         });
                         const info = await infoResponse.json();
-                        console.log(info);
+                        
                         const result = {
                             qualities: info.qualities,
                             videoTitle: info.title,
+                            description: info.description,
+                            tags: info.tags,
                             duration: info.duration,
                             uploadDate: info.upload_date,
                             viewCount: info.view_count,
@@ -171,7 +173,7 @@ class VideoDownloader {
             }
             
             console.log('Fetched video data, converting to buffer');
-            let buffer = Buffer.from(await response.arrayBuffer());
+            const buffer = Buffer.from(await response.arrayBuffer());
             
             const safeTitle = ((videoInfo && videoInfo.videoTitle) || this.lastVideoInfo.videoTitle || 'video')
                 .replace(/[/\\?%*:|"<>#&{}]/g, '') 
@@ -180,28 +182,20 @@ class VideoDownloader {
                 .replace(/^[.-]+|[.-]+$/g, '')     
                 .replace(/^$/g, 'video')           
                 .substring(0, 200);                
-
-            const title = ((videoInfo && videoInfo.videoTitle) || this.lastVideoInfo.videoTitle || 'video')
-            
+    
+            const title = ((videoInfo && videoInfo.videoTitle) || this.lastVideoInfo.videoTitle || 'video');
             const videoId = (videoInfo && videoInfo.videoId) || this.lastVideoInfo.videoId || Date.now().toString();
             const filename = `${safeTitle}-${videoId}.mp4`;
             const savePath = path.join(this.downloadPath, filename);
             
-
-            console.log('Writing file to disk');
+            // Write buffer to temporary file
             fs.writeFileSync(savePath, buffer);
-
-            console.log('Adding metadata');
-            try {
-                await this.addMetadata(savePath, title);
-                console.log('Metadata added successfully');
-            } catch (metadataError) {
-                console.error('Error adding metadata:', metadataError);
-                // Продолжаем без добавления метаданных
-            }
+    
+            console.log('Adding metadata directly');
+            await this.addMetadataAndSave(savePath, title, videoInfo);
             
-            
-            console.log('Video saved successfully');
+    
+            console.log('Video saved successfully with metadata');
             return {
                 path: savePath,
                 filename: filename,
@@ -212,20 +206,35 @@ class VideoDownloader {
             throw new Error(`Failed to save video locally: ${error.message}`);
         }
     }
-
-async  addMetadata(filePath, title) {
-  return new Promise((resolve, reject) => {
-    ffmpeg(filePath)
-      .outputOptions('-metadata', `title=${title}`)
-      .saveToFile(`${filePath}_temp.mp4`)
-      .on('end', () => {
-        // Заменить оригинальный файл временным
-        fs.renameSync(`${filePath}_temp.mp4`, filePath);
-        resolve();
-      })
-      .on('error', reject);
-  });
-}
+    
+    async addMetadataAndSave(filePath, title, videoInfo) {
+        return new Promise((resolve, reject) => {
+            const tempPath = `${filePath}.temp.mp4`;
+            
+            let ffmpegCommand = ffmpeg(filePath)
+                .outputOptions('-c', 'copy') // Копируем потоки без перекодирования
+                .outputOptions('-metadata', `title=${title}`);
+    
+            if (videoInfo && videoInfo.description) {
+                ffmpegCommand = ffmpegCommand.outputOptions('-metadata', `comment=${videoInfo.description}`);
+            }
+    
+            ffmpegCommand
+                .saveToFile(tempPath)
+                .on('end', async () => {
+                    try {
+                        await fs.promises.unlink(filePath);
+                        await fs.promises.rename(tempPath, filePath);
+                        resolve();
+                    } catch (err) {
+                        reject(err);
+                    }
+                })
+                .on('error', (err) => {
+                    reject(err);
+                });
+        });
+    }
     
 }
 

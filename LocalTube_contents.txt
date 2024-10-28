@@ -45,12 +45,13 @@ styles.css [Skipped]
 videoIndexer.js [Skipped]
 pages\index.html [Skipped]
 pages\index.js [Skipped]
-pages\player.html
-pages\player.js
+pages\player.html [Skipped]
+pages\player.js [Skipped]
 pages\settings.html [Skipped]
 pages\settings.js [Skipped]
+components\header.html
 components\header.js
-components\video-player-manager.js
+components\video-player-manager.js [Skipped]
 
 
 .git/ [Ignored .git folder]
@@ -81,7 +82,9 @@ Content:
         </div>
     </div>
     <!-- Контейнер для загрузки страниц -->
-    <main id="page-content"></main>
+    <main id="page-content">
+        
+    </main>
 
     <!-- Download Modal компонент -->
     <div id="download-modal-component"></div>
@@ -100,7 +103,7 @@ const Plyr = require('plyr');
 const ffprobe = require('ffprobe-static');
 const ffmpeg = require('fluent-ffmpeg');
 const moment = require('moment');
-
+let dragPlayer, dragPlayerEnd, toggleClickToPlayState
 
 const VideoPlayerManager = require('./components/video-player-manager');
 window.videoPlayerManager = new VideoPlayerManager();
@@ -175,7 +178,6 @@ function cleanupCurrentPage() {
 async function initApp() {
     // Загрузка компонентов
     await loadComponent("header-component", "./components/header.html");
-    await loadComponent("floating-player-component", "./components/floating-player.html");
 
     // Загрузка начальной страницы
     await loadPage("index");
@@ -188,6 +190,7 @@ async function initApp() {
         };
         document.body.appendChild(headerScript);
     }
+    dragPlayer, dragPlayerEnd, toggleClickToPlayState = require('./components/header.js');
 }
 
 
@@ -216,186 +219,69 @@ ipcRenderer.on('load-video', (event, videoPath) => {
     }
 });
 
-File: pages\player.html
-Content:
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LocalTube - Video Player</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css">
-</head>
-<body>
 
-    <main class="main-player">
-        <div class="video-container">
-            <div id="player-container">
-                <video id="video-player" controls></video>
+File: components\header.html
+Content:
+<!-- components/header.html -->
+<header>
+    <div class="logo" id="logo" onclick="loadPage('index')">LocalTube</div>
+    <div class="search-container">
+        <input type="text" id="search" placeholder="Search videos...">
+    </div>
+    <div class="header-buttons">
+        <div id="download-button" class="header-icon">⬇️</div>
+        <div id="settings-button" class="header-icon" onclick="loadPage('settings')">⚙️</div>
+        <label class="switch">
+            <input type="checkbox" id="theme-toggle">
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <script src="header.js"></script>
+</header>
+
+<div id="download-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="tab-container">
+                <button class="tab-button active" data-tab="download">Download Video</button>
+                <button class="tab-button" data-tab="active">Active Downloads</button>
             </div>
-            <div class="video-info">
-                <h1 id="video-title"></h1>
-                <div id="video-meta"></div>
-                <div class="actions">
-                    <button id="like-button">Лайк</button>
-                    <button id="dislike-button">Дизлайк</button>
-                    <button id="share-button">Поделиться</button>
+            <span class="close">&times;</span>
+        </div>
+
+        <!-- Вкладка Download Video -->
+        <div id="download-tab" class="tab-content active">
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="video-url">YouTube URL:</label>
+                    <input type="text" id="video-url" placeholder="https://www.youtube.com/watch?v=...">
                 </div>
-                <div id="video-description">
-                    <p id="description-text"></p>
-                    <button id="show-more">Показать больше</button>
+                <div id="quality-section" style="display: none;">
+                    <label for="quality-select">Select Quality:</label>
+                    <select id="quality-select"></select>
+                </div>
+                <div id="download-status"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="check-url" class="primary-button">Check Video</button>
+                <button id="start-download" class="primary-button" style="display: none;">Download</button>
+            </div>
+        </div>
+
+        <!-- Вкладка Active Downloads -->
+        <div id="active-tab" class="tab-content">
+            <div class="active-downloads-container">
+                <div id="active-downloads-list">
+                    <!-- Активные загрузки будут добавляться сюда динамически -->
                 </div>
             </div>
         </div>
-        <div class="recommendations">
-            <h2>Рекомендуемые видео</h2>
-            <div id="video-list" class="video-list"></div>
-        </div>
-    </main>
-
-    <script src="https://cdn.plyr.io/3.6.8/plyr.polyfilled.js"></script>
-    <script src="player.js"></script>
-</body>
-</html>
-
-
-File: pages\player.js
-Content:
-(function() {
-    console.log("Player page loaded");
-
-    let videoPlayer, videoTitle, videoMeta, descriptionText, showMoreBtn, player;
-    const unifiedPlayer = document.getElementById('unified-player');
-    
-    async function initPlayer() {
-        // Добавляем класс для страницы плеера
-        document.getElementById('page-content').classList.add('player-page');
-        
-        // Настраиваем unified-player для полноэкранного режима
-        unifiedPlayer.classList.remove('minimized');
-        unifiedPlayer.classList.add('maximized');
-        unifiedPlayer.classList.add('visible');
-
-        videoPlayer = document.getElementById('video-player');
-        videoTitle = document.getElementById('video-title');
-        videoMeta = document.getElementById('video-meta');
-        descriptionText = document.getElementById('description-text');
-        showMoreBtn = document.getElementById('show-more');
-
-        // Инициализируем Plyr
-        player = new Plyr(videoPlayer, {
-            controls: [
-                'play-large', 'play', 'progress', 'current-time', 'mute',
-                'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'
-            ],
-            settings: ['captions', 'quality', 'speed', 'loop']
-        });
-
-        if (window.currentVideo) {
-            filePath = window.currentVideo;
-            videoPlayer.src = filePath;
-            try {
-                loadVideoMetadata(filePath);
-                player.source = {
-                    type: 'video',
-                    sources: [{ src: filePath, type: 'video/mp4' }],
-                };
-               
-                player.on('loadedmetadata', () => {
-                    player.play().catch(error => {
-                        console.error('Error auto-playing video:', error);
-                    });
-                });
-            } catch (error) {
-                console.error('Error loading video:', error);
-            }
-        }
-
-        // Сохраняем время воспроизведения
-        player.on('timeupdate', () => {
-            window.currentVideoTime = player.currentTime;
-        });
-    }
-
-    function cleanup() {
-        document.getElementById('page-content').classList.remove('player-page');
-        if (player) {
-            window.currentVideoTime = player.currentTime;
-            window.isVideoPlaying = !player.paused;
-            player.destroy();
-        }
-    }
-
-
-    async function loadVideo(filePath) {
-        videoPlayer.src = filePath;
-        try {
-            await loadVideoMetadata(filePath);
-
-            player.source = {
-                type: 'video',
-                sources: [{ src: filePath, type: 'video/mp4' }],
-            };
-           
-            player.on('loadedmetadata', () => {
-                player.play().catch(error => {
-                    console.error('Error auto-playing video:', error);
-                });
-            });
-
-        } catch (error) {
-            console.error('Error loading video:', error);
-        }
-    }
-
-    function loadVideoMetadata(filePath) {
-        return new Promise((resolve, reject) => {
-            ffmpeg.setFfprobePath(ffprobe.path);
-            
-            ffmpeg.ffprobe(filePath, (err, metadata) => {
-                if (err) {
-                    console.error('Error reading metadata:', err);
-                    reject(err);
-                    return;
-                }
-
-                try {
-                    const videoStream = metadata.streams.find(stream => stream.codec_type === 'video');
-                    
-                    const title = path.basename(filePath, path.extname(filePath))
-                        .replace(/-\d+$/, '')
-                        .replace(/_/g, ' ');
-
-                    videoTitle.textContent = title;
-                    videoMeta.textContent = metadata.format.format_name || 'Unknown format';
-                    descriptionText.textContent = 'No description available';
-
-                    resolve({
-                        title: title,
-                        format: metadata.format.format_name || 'Unknown format'
-                    });
-                } catch (error) {
-                    console.error('Error processing metadata:', error);
-                    reject(error);
-                }
-            });
-        });
-    }
-
-    function formatBitrate(bitrate) {
-        if (!bitrate) return 'Unknown bitrate';
-        return `${Math.round(bitrate / 1000)} kbps`;
-    }
-
-    // Инициализация плеера при загрузке страницы
-    initPlayer();
-    return { cleanup };
-})();
-
+    </div>
+</div>
 
 File: components\header.js
 Content:
+
 
 const settingsButton = document.getElementById('settings-button');
 const logoButton = document.getElementById('logo');
@@ -412,89 +298,286 @@ const checkUrlBtn = document.getElementById('check-url');
 const startDownloadBtn = document.getElementById('start-download');
 const downloadStatus = document.getElementById('download-status');
 
+window.playerState = {
+    left: null,
+    top: null,
+    width: '320px',  // Дефолтные значения
+    height: '180px',
+    isMinimized: false,
+    initialWidth: null,   
+    initialHeight: null,  
+    initialX: null,      
+    initialY: null,
+    element: null  
+};
+
+window.playerState = playerState;
 
 let isDragging = false;
-let currentX;
-let currentY;
-let initialX;
-let initialY;
+let isResizing =  false;
+window.isDragging = isDragging;
+window.isResizing = isResizing;
 
-function dragStart(e) {
-    if (!e.target.classList.contains('player-wrapper')) return;
-    
-    const container = document.getElementById('unified-player');
-    initialX = e.clientX - container.offsetLeft;
-    initialY = e.clientY - container.offsetTop;
-    isDragging = true;
-}
-function drag(e) {
-    if (!isDragging) return;
-    
-    e.preventDefault();
-    const container = document.getElementById('unified-player');
-    currentX = e.clientX - initialX;
-    currentY = e.clientY - initialY;
 
-    // Ограничиваем перемещение
-    const maxX = window.innerWidth - container.offsetWidth;
-    const maxY = window.innerHeight - container.offsetHeight;
-    currentX = Math.max(0, Math.min(currentX, maxX));
-    currentY = Math.max(0, Math.min(currentY, maxY));
-
-    container.style.left = currentX + "px";
-    container.style.top = currentY + "px";
-}
-
-function dragEnd() {
-    isDragging = false;
-}
+document.addEventListener('playerMinimizedChanged', function(e) {
+    window.playerState.isMinimized = e.detail.isMinimized;
+    if (window.playerState.isMinimized) {
+        setupMinimizedPlayer();
+    } else {
+        resetMaximizedPlayer();
+    }
+});
 
 function setupMinimizedPlayer() {
     const unifiedPlayer = document.getElementById('unified-player');
-    const videoPlayer = document.getElementById('video-player');
+    const playerWrapper = unifiedPlayer.querySelector('.player-wrapper');
     const playPauseBtn = document.getElementById('play-pause-btn');
     const expandBtn = document.getElementById('expand-btn');
     const closeBtn = document.getElementById('close-btn');
+    const resizeHandle = document.createElement('div');
 
     if (!window.currentVideo) return;
 
-    // Настройка плеера для минимизированного режима
+    window.playerState.isMinimized = true;
+    window.playerState.element = document.getElementById('unified-player');
+
+    toggleClickToPlay(false);
+
+    // Если позиция не установлена, используем дефолтные значения
+    if (window.playerState.left === null) {
+        window.playerState.left = window.innerWidth - parseInt(window.playerState.width) - 20;
+        window.playerState.top = window.innerHeight - parseInt(window.playerState.height) - 20;
+    }
+
+    // Применяем сохраненное состояние
+    unifiedPlayer.style.left = `${window.playerState.left}px`;
+    unifiedPlayer.style.top = `${window.playerState.top}px`;
+    unifiedPlayer.style.width = window.playerState.width;
+    unifiedPlayer.style.height = window.playerState.height;
+
     unifiedPlayer.classList.remove('maximized');
     unifiedPlayer.classList.add('minimized', 'visible');
 
-    // Восстанавливаем время воспроизведения
-    if (window.currentVideoTime) {
-        videoPlayer.currentTime = window.currentVideoTime;
+    // Добавляем элемент для изменения размера
+    resizeHandle.className = 'resize-handle';
+    if (!unifiedPlayer.querySelector('.resize-handle')) {
+        unifiedPlayer.appendChild(resizeHandle);
     }
 
-    // Восстанавливаем состояние воспроизведения
-    if (window.isVideoPlaying) {
-        videoPlayer.play();
-    }
-
-    // Обработчики для кнопок
     playPauseBtn.onclick = () => {
-        if (videoPlayer.paused) {
-            videoPlayer.play();
+        if (window.globalPlayer.paused) {
+            window.globalPlayer.play();
         } else {
-            videoPlayer.pause();
+            window.globalPlayer.pause();
         }
     };
 
+    resizeHandle.onmousedown = resizeStart;
+    playerWrapper.onmousedown = dragStart;
+    document.onmousemove = handleMouseMove;
+    document.onmouseup = handleMouseUp;
+
+    // Обновляем обработчики кнопок
     expandBtn.onclick = () => {
+        // Сохраняем текущее состояние для возможной последующей минимизации
+        resetMaximizedPlayer();
         window.appFunctions.loadPage('player');
     };
 
     closeBtn.onclick = () => {
         unifiedPlayer.classList.remove('visible');
-        videoPlayer.pause();
+        window.globalPlayer.pause();
+        resetMaximizedPlayer();
     };
-
-    // Drag and drop functionality
-    unifiedPlayer.onmousedown = dragStart;
-    document.onmousemove = drag;
-    document.onmouseup = dragEnd;
 }
+
+function resizeStart(e) {
+    if (!window.playerState.isMinimized) return;
+
+    const unifiedPlayer = window.playerState.element;
+
+    window.isResizing = true;
+    window.playerState.initialWidth = unifiedPlayer.offsetWidth;
+    window.playerState.initialHeight = unifiedPlayer.offsetHeight;
+    window.playerState.initialX = e.clientX;
+    window.playerState.initialY = e.clientY;
+
+    console.error("isResizing set to: " + window.isResizing);
+
+    unifiedPlayer.style.transition = 'none';
+    e.stopPropagation();
+}
+
+// function resizeListener(e) {
+//     console.error("HEY");
+//     if (!window.playerState.isMinimized) return;
+    
+//     if (!isResizing) return;
+
+//     const dx = e.clientX - initialX;
+//     const dy = e.clientY - initialY;
+    
+//     const newWidth = Math.max(200, Math.min(initialWidth + dx, window.innerWidth - playerState.left));
+//     const newHeight = Math.max(150, Math.min(initialHeight + dy, window.innerHeight - playerState.top));
+    
+//     // Сохраняем новый размер
+//     playerState.width = `${newWidth}px`;
+//     playerState.height = `${newHeight}px`;
+    
+//     unifiedPlayer.style.width = playerState.width;
+//     unifiedPlayer.style.height = playerState.height;
+// }
+
+// function resizeEnd() {
+//     if (!window.playerState.isMinimized) return;
+    
+//     isResizing = false;
+//     isDragging = false;
+//     unifiedPlayer.style.transition = '';
+// }
+
+function dragStart(e) {
+    if (!window.playerState.isMinimized) return;
+    if (e.target.closest('.player-controls') || e.target.closest('.resize-handle')) return;
+    
+    const unifiedPlayer = window.playerState.element;
+    
+    isDragging = true;
+    const rect = unifiedPlayer.getBoundingClientRect();
+    window.playerState.initialX = e.clientX - rect.left;
+    window.playerState.initialY = e.clientY - rect.top;
+
+    console.error("isDragging set to TRUE");
+    
+    unifiedPlayer.style.transition = 'none';
+}
+
+function resetMaximizedPlayer() {
+    const unifiedPlayer = document.getElementById('unified-player');;
+    const playerWrapper = unifiedPlayer.querySelector('.player-wrapper');
+
+    toggleClickToPlay(true); 
+    
+    // Remove positioning and size styles
+    unifiedPlayer.style.left = '';
+    unifiedPlayer.style.top = '';
+    unifiedPlayer.style.width = '';
+    unifiedPlayer.style.height = '';
+    
+    // Remove event listeners
+    
+    playerWrapper.onmousedown = null;
+    document.onmousemove = null;
+    document.onmouseup = null;
+    
+    const resizeHandle = unifiedPlayer.querySelector('.resize-handle');
+    if (resizeHandle) {
+        resizeHandle.onmousedown = null;
+        resizeHandle.remove();
+    }
+}
+
+window.resetMaximizedPlayer = resetMaximizedPlayer;
+
+// function drag(e) {
+//     if (!isDragging || !window.playerState.isMinimized) return;
+    
+//     e.preventDefault();
+    
+//     const x = e.clientX - initialX;
+//     const y = e.clientY - initialY;
+    
+//     const maxX = window.innerWidth - unifiedPlayer.offsetWidth;
+//     const maxY = window.innerHeight - unifiedPlayer.offsetHeight;
+    
+//     const boundedX = Math.max(0, Math.min(x, maxX));
+//     const boundedY = Math.max(0, Math.min(y, maxY));
+    
+//     // Сохраняем новую позицию
+//     playerState.left = boundedX;
+//     playerState.top = boundedY;
+    
+//     unifiedPlayer.style.left = `${boundedX}px`;
+//     unifiedPlayer.style.top = `${boundedY}px`;
+// }
+
+function handleMouseMove(e) {
+    const unifiedPlayer = playerState.element;
+    
+    if (!window.playerState.isMinimized) return;
+    console.error("Kinda good _+ " + window.isResizing);
+    if (!isDragging && !window.isResizing) return;
+    
+    
+    if (window.isResizing) {
+        // Используем переменные из playerState
+        console.error("Kinda good");
+        const dx = e.clientX - window.playerState.initialX;
+        const dy = e.clientY - window.playerState.initialY;
+        
+        const newWidth = Math.max(200, Math.min(window.playerState.initialWidth + dx, window.innerWidth - window.playerState.left));
+        const newHeight = Math.max(150, Math.min(window.playerState.initialHeight + dy, window.innerHeight - window.playerState.top));
+        
+        // Сохраняем новый размер
+        window.playerState.width = `${newWidth}px`;
+        window.playerState.height = `${newHeight}px`;
+    
+        window.playerState.element.style.width = playerState.width;
+        window.playerState.element.style.height = playerState.height;
+        console.error("Kinda good 2");
+    } else if (isDragging) {
+        // Drag logic
+        const x = e.clientX - window.playerState.initialX;
+        const y = e.clientY - window.playerState.initialY;
+        
+        const maxX = window.innerWidth - unifiedPlayer.offsetWidth;
+        const maxY = window.innerHeight - unifiedPlayer.offsetHeight;
+        
+        const boundedX = Math.max(0, Math.min(x, maxX));
+        const boundedY = Math.max(0, Math.min(y, maxY));
+        
+        window.playerState.left = boundedX;
+        window.playerState.top = boundedY;
+        
+        unifiedPlayer.style.left = `${boundedX}px`;
+        unifiedPlayer.style.top = `${boundedY}px`;
+    }
+}
+
+// function dragEnd() {
+//     if (!isDragging || !playerState.isMinimized) return;
+//     isDragging = false;
+//     unifiedPlayer.style.transition = ''; // Восстанавливаем transition
+// }
+
+function handleMouseUp() {
+    if (!window.playerState.isMinimized) return;
+    
+    isDragging = false;
+    window.isResizing = false;
+    
+    console.error("isResizing and isDragging set to FALSE");
+    const unifiedPlayer = document.getElementById('unified-player');
+    unifiedPlayer.style.transition = '';
+}
+
+
+function toggleClickToPlay(enable) {
+    if (!window.globalPlayer) {
+        console.log('Player not initialized');
+        return;
+    }
+
+    const videoElement = window.globalPlayer.elements.container;
+    if (enable) {
+        videoElement.style.pointerEvents = 'auto';
+    } else {
+        videoElement.style.pointerEvents = 'none';
+    }
+
+    window.globalPlayer.config.clickToPlay = enable;
+}
+
 
 
 function toggleTheme() {
@@ -696,18 +779,16 @@ startDownloadBtn.addEventListener('click', async () => {
         status.textContent = 'Starting download...';
         status.className = 'status-info';
         
-        const result = await ipcRenderer.invoke('download-video', {
-            videoUrl: url,
-            videoFormat: selectedQuality,
-            audioFormat: 'bestaudio'
-        });
+        //const result = await ipcRenderer.invoke('download-video', {
+        //    videoUrl: url,
+        //    videoFormat: selectedQuality,
+        //    audioFormat: 'bestaudio'
+        //});
+        console.log("clicked");
         
         // Обновляем UI после успешной загрузки
         status.textContent = 'Download completed!';
         status.className = 'status-success';
-        
-        // Переключаемся на вкладку активных загрузок
-        document.querySelector('[data-tab="active"]').click();
         
     } catch (error) {
         const status = document.getElementById('download-status');
@@ -787,116 +868,4 @@ function createDownloadItemElement(download) {
     
     return div;
 }
-
-File: components\video-player-manager.js
-Content:
-// components/video-player-manager.js
-class VideoPlayerManager {
-    constructor() {
-        this.currentVideo = null;
-        this.currentTime = 0;
-        this.isPlaying = false;
-        this.mainPlayer = null;
-        this.floatingPlayer = null;
-        this.plyrInstance = null;
-    }
-
-    async initMainPlayer(videoElement) {
-        try {
-            if (this.plyrInstance) {
-                this.plyrInstance.destroy();
-            }
-
-            this.mainPlayer = videoElement;
-            this.plyrInstance = new Plyr(videoElement, {
-                controls: [
-                    'play-large', 'play', 'progress', 'current-time', 'mute',
-                    'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'
-                ],
-                settings: ['captions', 'quality', 'speed', 'loop']
-            });
-
-            this.plyrInstance.on('timeupdate', () => {
-                this.currentTime = this.plyrInstance.currentTime;
-            });
-
-            if (this.currentVideo) {
-                await this.loadVideo(this.currentVideo, this.currentTime);
-            }
-        } catch (error) {
-            console.error('Error initializing main player:', error);
-        }
-    }
-
-    initFloatingPlayer(videoElement) {
-        this.floatingPlayer = videoElement;
-        if (this.currentVideo) {
-            this.floatingPlayer.src = this.currentVideo;
-            this.floatingPlayer.currentTime = this.currentTime;
-        }
-    }
-
-    async loadVideo(videoPath, startTime = 0) {
-        try {
-            this.currentVideo = videoPath;
-            
-            if (this.plyrInstance) {
-                this.plyrInstance.source = {
-                    type: 'video',
-                    sources: [{ src: videoPath, type: 'video/mp4' }]
-                };
-                
-                this.plyrInstance.once('loadedmetadata', () => {
-                    this.plyrInstance.currentTime = startTime || this.currentTime;
-                    if (this.isPlaying) this.plyrInstance.play();
-                });
-            }
-
-            if (this.floatingPlayer) {
-                this.floatingPlayer.src = videoPath;
-                this.floatingPlayer.currentTime = startTime || this.currentTime;
-                if (this.isPlaying) this.floatingPlayer.play();
-            }
-        } catch (error) {
-            console.error('Error loading video:', error);
-        }
-    }
-
-    switchToFloating() {
-        if (!this.currentVideo) return;
-
-        if (this.plyrInstance) {
-            this.currentTime = this.plyrInstance.currentTime;
-            this.isPlaying = !this.plyrInstance.paused;
-        }
-
-        const floatingContainer = document.getElementById('floating-player-container');
-        if (floatingContainer) {
-            floatingContainer.classList.remove('hidden');
-            if (this.floatingPlayer) {
-                this.floatingPlayer.currentTime = this.currentTime;
-                if (this.isPlaying) this.floatingPlayer.play();
-            }
-        }
-    }
-
-    switchToMain() {
-        if (!this.currentVideo) return;
-
-        if (this.floatingPlayer) {
-            this.currentTime = this.floatingPlayer.currentTime;
-            this.isPlaying = !this.floatingPlayer.paused;
-            this.floatingPlayer.pause();
-        }
-
-        const floatingContainer = document.getElementById('floating-player-container');
-        if (floatingContainer) {
-            floatingContainer.classList.add('hidden');
-        }
-
-        window.appFunctions.loadPage('player');
-    }
-}
-
-module.exports = VideoPlayerManager;
 

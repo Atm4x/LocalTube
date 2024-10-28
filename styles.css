@@ -790,10 +790,32 @@ main {
     border-radius: 12px;
     overflow: hidden;
 }
+.resize-handle {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 15px;
+    height: 15px;
+    cursor: se-resize;
+    z-index: 1001;
+}
+
+.resize-handle::after {
+    content: '';
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 0 8px 8px;
+    border-color: transparent transparent rgba(255,255,255,0.7) transparent;
+}
+
 .unified-player.minimized {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: auto; /* Удаляем автоматическое позиционирование */
+    right: auto;  /* Удаляем автоматическое позиционирование */
     width: 320px;
     height: 180px;
     z-index: 1000;
@@ -801,6 +823,9 @@ main {
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     display: none;
+    transform: translate(0, 0);
+    transition: none;
+    user-select: none;
 }
 
 .unified-player.minimized.visible {

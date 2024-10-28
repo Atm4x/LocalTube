@@ -1,3 +1,5 @@
+
+
 (function() {
     console.log("Player page loaded");
 
@@ -9,6 +11,10 @@
         // Добавляем класс для страницы плеера
         document.getElementById('page-content').classList.add('player-page');
         
+        document.removeEventListener('mousemove', dragPlayer);
+        document.removeEventListener('mouseup', dragPlayerEnd);
+        
+
         // Настраиваем unified-player для полноэкранного режима
         unifiedPlayer.classList.remove('minimized');
         unifiedPlayer.classList.add('maximized');
@@ -20,7 +26,6 @@
         descriptionText = document.getElementById('description-text');
         showMoreBtn = document.getElementById('show-more');
 
-        
         // Проверяем существует ли уже плеер
         if (!window.globalPlayer) {
             // Инициализируем Plyr только если его еще нет
@@ -33,8 +38,9 @@
                 tooltips: { controls: true, seek: true }
             });
         }
-        window.globalPlayer.on('controlsshown', () => console.log('Controls shown'));
-        window.globalPlayer.on('controlshidden', () => console.log('Controls hidden'));
+        if (window.playerState) {
+            window.playerState.isMinimized = false;
+        }
         if (window.currentVideo) {
             // Проверяем, не совпадает ли текущий источник с новым
             if (window.currentVideoSource === window.currentVideo) {

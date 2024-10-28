@@ -1,4 +1,5 @@
 
+
 const settingsButton = document.getElementById('settings-button');
 const logoButton = document.getElementById('logo');
 const themeToggle = document.getElementById('theme-toggle');
@@ -14,61 +15,72 @@ const checkUrlBtn = document.getElementById('check-url');
 const startDownloadBtn = document.getElementById('start-download');
 const downloadStatus = document.getElementById('download-status');
 
+window.playerState = {
+    left: null,
+    top: null,
+    width: '320px',  // Дефолтные значения
+    height: '180px',
+    isMinimized: false,
+    initialWidth: null,   
+    initialHeight: null,  
+    initialX: null,      
+    initialY: null,
+    element: null  
+};
+
+window.playerState = playerState;
 
 let isDragging = false;
-let currentX;
-let currentY;
-let initialX;
-let initialY;
+let isResizing =  false;
+window.isDragging = isDragging;
+window.isResizing = isResizing;
 
-function dragStart(e) {
-    if (!e.target.classList.contains('player-wrapper')) return;
-    
-    const container = document.getElementById('unified-player');
-    initialX = e.clientX - container.offsetLeft;
-    initialY = e.clientY - container.offsetTop;
-    isDragging = true;
-}
-function drag(e) {
-    if (!isDragging) return;
-    
-    e.preventDefault();
-    const container = document.getElementById('unified-player');
-    currentX = e.clientX - initialX;
-    currentY = e.clientY - initialY;
 
-    // Ограничиваем перемещение
-    const maxX = window.innerWidth - container.offsetWidth;
-    const maxY = window.innerHeight - container.offsetHeight;
-    currentX = Math.max(0, Math.min(currentX, maxX));
-    currentY = Math.max(0, Math.min(currentY, maxY));
-
-    container.style.left = currentX + "px";
-    container.style.top = currentY + "px";
-}
-
-function dragEnd() {
-    isDragging = false;
-}
+document.addEventListener('playerMinimizedChanged', function(e) {
+    window.playerState.isMinimized = e.detail.isMinimized;
+    if (window.playerState.isMinimized) {
+        setupMinimizedPlayer();
+    } else {
+        resetMaximizedPlayer();
+    }
+});
 
 function setupMinimizedPlayer() {
     const unifiedPlayer = document.getElementById('unified-player');
+    const playerWrapper = unifiedPlayer.querySelector('.player-wrapper');
     const playPauseBtn = document.getElementById('play-pause-btn');
     const expandBtn = document.getElementById('expand-btn');
     const closeBtn = document.getElementById('close-btn');
+    const resizeHandle = document.createElement('div');
 
     if (!window.currentVideo) return;
 
-    // Настройка плеера для минимизированного режима
+    window.playerState.isMinimized = true;
+    window.playerState.element = document.getElementById('unified-player');
+
+    toggleClickToPlay(false);
+
+    // Если позиция не установлена, используем дефолтные значения
+    if (window.playerState.left === null) {
+        window.playerState.left = window.innerWidth - parseInt(window.playerState.width) - 20;
+        window.playerState.top = window.innerHeight - parseInt(window.playerState.height) - 20;
+    }
+
+    // Применяем сохраненное состояние
+    unifiedPlayer.style.left = `${window.playerState.left}px`;
+    unifiedPlayer.style.top = `${window.playerState.top}px`;
+    unifiedPlayer.style.width = window.playerState.width;
+    unifiedPlayer.style.height = window.playerState.height;
+
     unifiedPlayer.classList.remove('maximized');
     unifiedPlayer.classList.add('minimized', 'visible');
 
-    // Восстанавливаем состояние воспроизведения
-    if (window.isVideoPlaying) {
-        window.globalPlayer.play();
+    // Добавляем элемент для изменения размера
+    resizeHandle.className = 'resize-handle';
+    if (!unifiedPlayer.querySelector('.resize-handle')) {
+        unifiedPlayer.appendChild(resizeHandle);
     }
 
-    // Обработчики для кнопок
     playPauseBtn.onclick = () => {
         if (window.globalPlayer.paused) {
             window.globalPlayer.play();
@@ -77,20 +89,203 @@ function setupMinimizedPlayer() {
         }
     };
 
+    resizeHandle.onmousedown = resizeStart;
+    playerWrapper.onmousedown = dragStart;
+    document.onmousemove = handleMouseMove;
+    document.onmouseup = handleMouseUp;
+
+    // Обновляем обработчики кнопок
     expandBtn.onclick = () => {
+        // Сохраняем текущее состояние для возможной последующей минимизации
+        resetMaximizedPlayer();
         window.appFunctions.loadPage('player');
     };
 
     closeBtn.onclick = () => {
         unifiedPlayer.classList.remove('visible');
         window.globalPlayer.pause();
+        resetMaximizedPlayer();
     };
-
-    // Drag and drop functionality
-    unifiedPlayer.onmousedown = dragStart;
-    document.onmousemove = drag;
-    document.onmouseup = dragEnd;
 }
+
+function resizeStart(e) {
+    if (!window.playerState.isMinimized) return;
+
+    const unifiedPlayer = window.playerState.element;
+
+    window.isResizing = true;
+    window.playerState.initialWidth = unifiedPlayer.offsetWidth;
+    window.playerState.initialHeight = unifiedPlayer.offsetHeight;
+    window.playerState.initialX = e.clientX;
+    window.playerState.initialY = e.clientY;
+
+    unifiedPlayer.style.transition = 'none';
+    e.stopPropagation();
+}
+
+// function resizeListener(e) {
+//     if (!window.playerState.isMinimized) return;
+    
+//     if (!isResizing) return;
+
+//     const dx = e.clientX - initialX;
+//     const dy = e.clientY - initialY;
+    
+//     const newWidth = Math.max(200, Math.min(initialWidth + dx, window.innerWidth - playerState.left));
+//     const newHeight = Math.max(150, Math.min(initialHeight + dy, window.innerHeight - playerState.top));
+    
+//     // Сохраняем новый размер
+//     playerState.width = `${newWidth}px`;
+//     playerState.height = `${newHeight}px`;
+    
+//     unifiedPlayer.style.width = playerState.width;
+//     unifiedPlayer.style.height = playerState.height;
+// }
+
+// function resizeEnd() {
+//     if (!window.playerState.isMinimized) return;
+    
+//     isResizing = false;
+//     isDragging = false;
+//     unifiedPlayer.style.transition = '';
+// }
+
+function dragStart(e) {
+    if (!window.playerState.isMinimized) return;
+    if (e.target.closest('.player-controls') || e.target.closest('.resize-handle')) return;
+    
+    const unifiedPlayer = window.playerState.element;
+    
+    isDragging = true;
+    const rect = unifiedPlayer.getBoundingClientRect();
+    window.playerState.initialX = e.clientX - rect.left;
+    window.playerState.initialY = e.clientY - rect.top;
+    
+    unifiedPlayer.style.transition = 'none';
+}
+
+function resetMaximizedPlayer() {
+    const unifiedPlayer = document.getElementById('unified-player');;
+    const playerWrapper = unifiedPlayer.querySelector('.player-wrapper');
+
+    toggleClickToPlay(true); 
+    
+    // Remove positioning and size styles
+    unifiedPlayer.style.left = '';
+    unifiedPlayer.style.top = '';
+    unifiedPlayer.style.width = '';
+    unifiedPlayer.style.height = '';
+    
+    // Remove event listeners
+    
+    playerWrapper.onmousedown = null;
+    document.onmousemove = null;
+    document.onmouseup = null;
+    
+    const resizeHandle = unifiedPlayer.querySelector('.resize-handle');
+    if (resizeHandle) {
+        resizeHandle.onmousedown = null;
+        resizeHandle.remove();
+    }
+}
+
+window.resetMaximizedPlayer = resetMaximizedPlayer;
+
+// function drag(e) {
+//     if (!isDragging || !window.playerState.isMinimized) return;
+    
+//     e.preventDefault();
+    
+//     const x = e.clientX - initialX;
+//     const y = e.clientY - initialY;
+    
+//     const maxX = window.innerWidth - unifiedPlayer.offsetWidth;
+//     const maxY = window.innerHeight - unifiedPlayer.offsetHeight;
+    
+//     const boundedX = Math.max(0, Math.min(x, maxX));
+//     const boundedY = Math.max(0, Math.min(y, maxY));
+    
+//     // Сохраняем новую позицию
+//     playerState.left = boundedX;
+//     playerState.top = boundedY;
+    
+//     unifiedPlayer.style.left = `${boundedX}px`;
+//     unifiedPlayer.style.top = `${boundedY}px`;
+// }
+
+function handleMouseMove(e) {
+    const unifiedPlayer = playerState.element;
+    
+    if (!window.playerState.isMinimized) return;
+    if (!isDragging && !window.isResizing) return;
+    
+    
+    if (window.isResizing) {
+        // Используем переменные из playerState
+        const dx = e.clientX - window.playerState.initialX;
+        const dy = e.clientY - window.playerState.initialY;
+        
+        const newWidth = Math.max(200, Math.min(window.playerState.initialWidth + dx, window.innerWidth - window.playerState.left));
+        const newHeight = Math.max(150, Math.min(window.playerState.initialHeight + dy, window.innerHeight - window.playerState.top));
+        
+        // Сохраняем новый размер
+        window.playerState.width = `${newWidth}px`;
+        window.playerState.height = `${newHeight}px`;
+    
+        window.playerState.element.style.width = playerState.width;
+        window.playerState.element.style.height = playerState.height;
+    } else if (isDragging) {
+        // Drag logic
+        const x = e.clientX - window.playerState.initialX;
+        const y = e.clientY - window.playerState.initialY;
+        
+        const maxX = window.innerWidth - unifiedPlayer.offsetWidth;
+        const maxY = window.innerHeight - unifiedPlayer.offsetHeight;
+        
+        const boundedX = Math.max(0, Math.min(x, maxX));
+        const boundedY = Math.max(0, Math.min(y, maxY));
+        
+        window.playerState.left = boundedX;
+        window.playerState.top = boundedY;
+        
+        unifiedPlayer.style.left = `${boundedX}px`;
+        unifiedPlayer.style.top = `${boundedY}px`;
+    }
+}
+
+// function dragEnd() {
+//     if (!isDragging || !playerState.isMinimized) return;
+//     isDragging = false;
+//     unifiedPlayer.style.transition = ''; // Восстанавливаем transition
+// }
+
+function handleMouseUp() {
+    if (!window.playerState.isMinimized) return;
+    
+    isDragging = false;
+    window.isResizing = false;
+    
+    const unifiedPlayer = document.getElementById('unified-player');
+    unifiedPlayer.style.transition = '';
+}
+
+
+function toggleClickToPlay(enable) {
+    if (!window.globalPlayer) {
+        console.log('Player not initialized');
+        return;
+    }
+
+    const videoElement = window.globalPlayer.elements.container;
+    if (enable) {
+        videoElement.style.pointerEvents = 'auto';
+    } else {
+        videoElement.style.pointerEvents = 'none';
+    }
+
+    window.globalPlayer.config.clickToPlay = enable;
+}
+
 
 
 function toggleTheme() {
@@ -301,9 +496,6 @@ startDownloadBtn.addEventListener('click', async () => {
         // Обновляем UI после успешной загрузки
         status.textContent = 'Download completed!';
         status.className = 'status-success';
-        
-        // Переключаемся на вкладку активных загрузок
-        document.querySelector('[data-tab="active"]').click();
         
     } catch (error) {
         const status = document.getElementById('download-status');
