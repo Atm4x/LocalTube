@@ -28,7 +28,7 @@ function createWindow() {
 
     mainWindow.setMenu(null);
     mainWindow.loadFile('app.html');
-    mainWindow.webContents.openDevTools();
+    //mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {
@@ -179,6 +179,10 @@ const thumbsDir = path.join(app.getPath('userData'), 'thumbnails');
 if (!fs.existsSync(thumbsDir)) {
     fs.mkdirSync(thumbsDir);
 }
+
+ipcMain.on('get-user-data-path', (event) => {
+    event.returnValue = app.getPath('userData');
+});
 
 // Кеш превью
 const thumbnailCache = new Map();

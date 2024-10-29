@@ -337,7 +337,7 @@ main {
 .modal {
     display: none;
     position: fixed;
-    z-index: 1000;
+    z-index: 1005;
     left: 0;
     top: 0;
     width: 100%;
@@ -954,4 +954,105 @@ main {
 /* Hide controls when player is minimized */
 .unified-player.minimized .plyr__controls {
     display: none !important;
+}
+
+
+.video-list {
+    width: 100%;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.recommendation-item {
+    display: flex;
+    margin-bottom: 16px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.recommendation-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.recommendation-thumbnail {
+    width: 168px;
+    height: 94px;
+    margin-right: 12px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #f0f0f0;
+}
+
+.recommendation-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.recommendation-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.recommendation-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: #0f0f0f;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+}
+
+.recommendation-description {
+    font-size: 12px;
+    color: #606060;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+}
+
+.recommendation-views {
+    font-size: 12px;
+    color: #606060;
+}
+
+/* Стили для тёмной темы */
+.dark-theme .recommendation-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-theme .recommendation-title {
+    color: #fff;
+}
+
+.dark-theme .recommendation-description,
+.dark-theme .recommendation-views {
+    color: #aaa;
+}
+
+/* Стилизация скроллбара */
+.video-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.video-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.video-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.video-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }

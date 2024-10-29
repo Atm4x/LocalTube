@@ -216,7 +216,9 @@ class VideoDownloader {
                 .outputOptions('-metadata', `title=${title}`);
     
             if (videoInfo && videoInfo.description) {
-                ffmpegCommand = ffmpegCommand.outputOptions('-metadata', `comment=${videoInfo.description}`);
+                // Заменяем переносы строк на `n`r
+                const escapedDescription = videoInfo.description.replace(/\n/g, '`n`r');
+                ffmpegCommand = ffmpegCommand.outputOptions('-metadata', `comment=${escapedDescription}`);
             }
     
             ffmpegCommand
