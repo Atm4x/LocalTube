@@ -28,6 +28,12 @@ window.playerState = {
     element: null  
 };
 
+
+function invokeEvent(value) {
+    const event = new CustomEvent('minimizedChanged', { detail: value });
+    window.customEvents.dispatchEvent(event);
+}
+
 window.playerState = playerState;
 
 let isDragging = false;
@@ -56,6 +62,7 @@ function setupMinimizedPlayer() {
     if (!window.currentVideo) return;
 
     window.playerState.isMinimized = true;
+    invokeEvent(true);
     window.playerState.element = document.getElementById('unified-player');
 
     toggleClickToPlay(false);
@@ -168,7 +175,9 @@ function resetMaximizedPlayer() {
     const unifiedPlayer = document.getElementById('unified-player');;
     const playerWrapper = unifiedPlayer.querySelector('.player-wrapper');
 
+    window.playerState.isMinimized = true;
     toggleClickToPlay(true); 
+    invokeEvent(true);
     
     // Remove positioning and size styles
     unifiedPlayer.style.left = '';

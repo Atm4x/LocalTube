@@ -33,17 +33,26 @@ Folder Structure: LocalTube
 app.html [Skipped]
 app.js [Skipped]
 components/
+default-thumbnail.jpg [Skipped]
 downloader.js [Skipped]
 downloads/
 LocalTube_contents.txt [Skipped]
-main.js [Skipped]
+main.js
 node_modules/
 package-lock.json [Skipped]
 package.json [Skipped]
 pages/
 recommendation.js
+styles/
 styles.css [Skipped]
-videoIndexer.js [Skipped]
+videoIndexer.js
+styles\base.css [Skipped]
+styles\components.css [Skipped]
+styles\grid.css [Skipped]
+styles\header.css [Skipped]
+styles\modal.css [Skipped]
+styles\player.css [Skipped]
+styles\responsive.css [Skipped]
 pages\index.html [Skipped]
 pages\index.js [Skipped]
 pages\player.html
@@ -58,12 +67,302 @@ components\video-player-manager.js [Skipped]
 
 .git/ [Ignored .git folder]
 
+File: main.js
+Content:
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { indexVideos, addActiveDownload, removeActiveDownload } = require('./videoIndexer');
+const path = require('path');
+const fs = require('fs');
+
+const ffmpeg = require('fluent-ffmpeg');
+const crypto = require('crypto');
+const VideoDownloader = require('./downloader');
+const downloader = new VideoDownloader();
+
+const activeDownloads = new Map();
+
+let mainWindow;
+let indexedFolders = [];
+
+
+const defaultThumbPath = path.join(__dirname, 'default-thumbnail.jpg');
+
+const thumbsDir = path.join(app.getPath('userData'), 'thumbnails');
+if (!fs.existsSync(thumbsDir)) {
+    fs.mkdirSync(thumbsDir);
+    if (fs.existsSync(defaultThumbPath)) {
+        fs.copyFileSync(defaultThumbPath, path.join(thumbsDir, 'default-thumbnail.jpg'));
+    }
+}
+
+
+function createWindow() {
+    mainWindow = new BrowserWindow({
+        width: 1200,
+        height: 800,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            enableRemoteModule: true,
+            webSecurity: false,
+            allowRunningInsecureContent: true
+        }
+    });
+
+    mainWindow.setMenu(null);
+    mainWindow.loadFile('app.html');
+    mainWindow.webContents.openDevTools();
+}
+
+app.whenReady().then(() => {
+    createWindow();
+
+    app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) {
+            createWindow();
+        }
+    });
+
+    // Load settings from settings.json
+    const settingsPath = path.join(app.getPath('userData'), 'settings.json');
+    if (fs.existsSync(settingsPath)) {
+        indexedFolders = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    }
+});
+
+app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+        app.quit();
+    }
+});
+
+// Навигация между страницами
+ipcMain.on('navigate', (event, pageName) => {
+    mainWindow.webContents.send('navigate', pageName);
+});
+
+ipcMain.on('get-folders', (event) => {
+    event.reply('load-folders', indexedFolders);
+});
+
+ipcMain.on('add-folder', (event) => {
+    dialog.showOpenDialog({
+        properties: ['openDirectory']
+    }).then(result => {
+        if (!result.canceled) {
+            const newFolder = result.filePaths[0];
+            if (!indexedFolders.includes(newFolder)) {
+                indexedFolders.push(newFolder);
+                saveSettings();
+                event.reply('load-folders', indexedFolders);
+            }
+        }
+    });
+});
+
+ipcMain.on('remove-folder', (event, folder) => {
+    indexedFolders = indexedFolders.filter(f => f !== folder);
+    saveSettings();
+    event.reply('load-folders', indexedFolders);
+});
+
+ipcMain.on('index-videos', (event) => {
+    const downloadPath = path.join(process.cwd(), 'downloads');
+    const allFolders = [...indexedFolders];
+    
+    if (fs.existsSync(downloadPath) && !allFolders.includes(downloadPath)) {
+        allFolders.unshift(downloadPath);
+    }
+
+    const videos = indexVideos(allFolders);
+    
+    const filteredVideos = videos.filter(video => 
+        !Array.from(activeDownloads.values()).some(download => 
+            download.path === video
+        )
+    );
+    
+    event.reply('video-list', filteredVideos);
+});
+
+ipcMain.on('open-video', (event, videoPath) => {
+    if (fs.existsSync(videoPath)) {
+        mainWindow.webContents.send('navigate', 'player');
+        // Используем setTimeout, чтобы дать время на загрузку страницы плеера
+        setTimeout(() => {
+            mainWindow.webContents.send('load-video', videoPath);
+        }, 100);
+    } else {
+        mainWindow.webContents.send('video-not-found', videoPath);
+    }
+});
+
+ipcMain.handle('get-video-info', async (event, videoUrl) => {
+    try {
+        return await downloader.getVideoInfo(videoUrl);
+    } catch (error) {
+        throw error;
+    }
+});
+
+ipcMain.handle('download-video', async (event, { videoUrl, videoFormat, audioFormat }) => {
+    try {
+        const downloadId = Date.now().toString();
+        const tempPath = path.join(app.getPath('temp'), `${downloadId}.mp4`);
+        
+        // Добавляем загрузку в активные
+        activeDownloads.set(downloadId, {
+            id: downloadId,
+            url: videoUrl,
+            status: 'pending',
+            progress: 0,
+            tempPath
+        });
+        
+        // Сообщаем всем окнам об обновлении списка загрузок
+        BrowserWindow.getAllWindows().forEach(win => {
+            win.webContents.send('download-update', Array.from(activeDownloads.values()));
+        });
+
+        // Начинаем загрузку
+        activeDownloads.get(downloadId).status = 'downloading';
+        updateDownloadStatus(downloadId);
+        
+        const result = await downloader.downloadVideo(videoUrl, videoFormat, audioFormat);
+        
+        // Обновляем статус на добавление метаданных
+        activeDownloads.get(downloadId).status = 'meta';
+        updateDownloadStatus(downloadId);
+        
+        // После успешной загрузки
+        activeDownloads.delete(downloadId);
+        updateDownloadStatus(downloadId, true);
+        
+        return result;
+    } catch (error) {
+        throw error;
+    }
+});
+
+
+function updateDownloadStatus(downloadId, finished = false) {
+    BrowserWindow.getAllWindows().forEach(win => {
+        if (finished) {
+            win.webContents.send('download-finished', downloadId);
+        } else {
+            win.webContents.send('download-update', Array.from(activeDownloads.values()));
+        }
+    });
+}
+
+ipcMain.handle('get-active-downloads', () => {
+    return Array.from(activeDownloads.values());
+  });
+
+function saveSettings() {
+    const settingsPath = path.join(app.getPath('userData'), 'settings.json');
+    fs.writeFileSync(settingsPath, JSON.stringify(indexedFolders, null, 2));
+}
+ipcMain.on('get-user-data-path', (event) => {
+    event.returnValue = app.getPath('userData');
+});
+
+// Кеш превью
+const thumbnailCache = new Map();
+
+ipcMain.handle('get-video-thumbnail', async (event, videoPath) => {
+    const videoHash = crypto.createHash('md5').update(videoPath).digest('hex');
+    const thumbnailPath = path.join(thumbsDir, `${videoHash}.jpg`);
+    const defaultLocalThumb = path.join(thumbsDir, 'default-thumbnail.jpg');
+
+    // Проверяем наличие дефолтного изображения в папке thumbnails
+    if (!fs.existsSync(defaultLocalThumb) && fs.existsSync(defaultThumbPath)) {
+        fs.copyFileSync(defaultThumbPath, defaultLocalThumb);
+    }
+
+    // Проверяем кеш
+    if (thumbnailCache.has(videoPath)) {
+        return thumbnailCache.get(videoPath);
+    }
+
+    // Проверяем существование файла превью
+    if (fs.existsSync(thumbnailPath)) {
+        thumbnailCache.set(videoPath, thumbnailPath);
+        return thumbnailPath;
+    }
+
+    // Создаем превью через ffmpeg
+    return new Promise((resolve, reject) => {
+        // Сначала проверяем наличие видеопотока
+        ffmpeg.ffprobe(videoPath, (err, metadata) => {
+            if (err) {
+                console.error('Error probing video:', err);
+                return resolve(defaultLocalThumb);
+            }
+
+            const hasVideoStream = metadata.streams.some(stream => stream.codec_type === 'video');
+            
+            if (!hasVideoStream) {
+                console.error('No video stream found');
+                return resolve(defaultLocalThumb);
+            }
+
+            ffmpeg(videoPath)
+                .on('end', () => {
+                    thumbnailCache.set(videoPath, thumbnailPath);
+                    resolve(thumbnailPath);
+                })
+                .on('error', (err) => {
+                    console.error('Error creating thumbnail:', err);
+                    resolve(defaultLocalThumb);
+                })
+                .screenshots({
+                    timestamps: ['10%'],
+                    filename: path.basename(thumbnailPath),
+                    folder: thumbsDir,
+                    size: '320x180'
+                });
+        });
+    });
+});
+
+// Очистка кеша при низкой памяти
+app.on('web-contents-created', (event, contents) => {
+    contents.on('destroyed', () => {
+        thumbnailCache.clear();
+    });
+});
+
+function checkMemoryUsage() {
+    const used = process.memoryUsage();
+    if (used.heapUsed > 500 * 1024 * 1024) { // 500MB
+        thumbnailCache.clear();
+        gc && gc();
+    }
+}
+
+setInterval(checkMemoryUsage, 30000);
+
 File: recommendation.js
 Content:
+const fs = require('fs').promises;
+const path = require('path');
+const { ipcRenderer }   = require('electron');
+
+
 class RecommendationSystem {
     constructor() {
-        this.watchHistory = new Map();
-        this.lastWatched = [];
+        this.appDataPath = ipcRenderer.sendSync('get-user-data-path');
+        this.appDataPath = path.join(this.appDataPath, 'recommendations.json');
+        
+        // Загружаем сохраненные данные при инициализации
+        this.loadData().catch(() => {
+            // Если файл не существует или произошла ошибка, используем значения по умолчанию
+            this.watchHistory = new Map();
+            this.lastWatched = [];
+            this.categoryPreferences = new Map();
+        });
+        
         this.MAX_HISTORY = 50;
     }
 
@@ -78,45 +377,89 @@ class RecommendationSystem {
             .filter(word => word.length > 2);
     }
 
+    async loadData() {
+        const data = JSON.parse(await fs.readFile(this.appDataPath, 'utf8'));
+        this.watchHistory = new Map(Object.entries(data.watchHistory));
+        this.lastWatched = data.lastWatched;
+        this.categoryPreferences = new Map(Object.entries(data.categoryPreferences));
+    }
+
+    async saveData() {
+        const data = {
+            watchHistory: Object.fromEntries(this.watchHistory),
+            lastWatched: this.lastWatched,
+            categoryPreferences: Object.fromEntries(this.categoryPreferences)
+        };
+        await fs.writeFile(this.appDataPath, JSON.stringify(data), 'utf8');
+    }
+
+    // Метод для обновления предпочтений пользователя на основе просмотренного видео
+    updateCategoryPreferences(keywords) {
+        keywords.forEach(keyword => {
+            this.categoryPreferences.set(
+                keyword, 
+                (this.categoryPreferences.get(keyword) || 0) + 1
+            );
+        });
+    }
+
     calculateSimilarity(currentVideo, candidateVideo) {
         let score = 0;
         
-        // Сравниваем ключевые слова из названий
+        // Получаем ключевые слова
         const keywords1 = this.extractKeywords(currentVideo.title);
         const keywords2 = this.extractKeywords(candidateVideo.title);
         
         if (keywords1.length && keywords2.length) {
             const commonWords = keywords1.filter(word => keywords2.includes(word));
             score += (commonWords.length * 2) / (keywords1.length + keywords2.length);
+
+            // Добавляем бонус за предпочитаемые категории
+            keywords2.forEach(keyword => {
+                const preferenceScore = this.categoryPreferences.get(keyword) || 0;
+                score += (preferenceScore * 0.2); // Увеличиваем вес видео с предпочитаемыми категориями
+            });
         }
 
-        // Учитываем длительность, если она доступна
+        // Учитываем частоту просмотров этого конкретного видео
+        const watchCount = this.watchHistory.get(candidateVideo.path) || 0;
+        score += Math.min(watchCount, 5) * 0.15; // Увеличиваем вес для часто просматриваемых видео
+
+        // Бонус за недавно просмотренные похожие видео
+        const recentlyWatchedBonus = this.lastWatched
+            .slice(0, 10) // берем последние 10 просмотренных
+            .includes(candidateVideo.path) ? -0.5 : 0; // Понижаем рейтинг недавно просмотренных
+        score += recentlyWatchedBonus;
+
+        // Учитываем длительность
         if (currentVideo.duration && candidateVideo.duration) {
             const durationDiff = Math.abs(currentVideo.duration - candidateVideo.duration);
             const maxDuration = Math.max(currentVideo.duration, candidateVideo.duration);
             score += 1 - (durationDiff / maxDuration);
         }
 
-        // Учитываем историю просмотров
-        const watchCount = this.watchHistory.get(candidateVideo.path) || 0;
-        score += Math.min(watchCount, 5) * 0.1;
-
         return score;
     }
 
-    updateWatchHistory(videoPath) {
+    async updateWatchHistory(videoPath) {
+        // Обновляем количество просмотров
         this.watchHistory.set(videoPath, (this.watchHistory.get(videoPath) || 0) + 1);
-        this.lastWatched.unshift(videoPath);
-        if (this.lastWatched.length > this.MAX_HISTORY) {
-            this.lastWatched.pop();
-        }
+        
+        // Обновляем список последних просмотренных
+        this.lastWatched = [videoPath, ...this.lastWatched.filter(v => v !== videoPath)]
+            .slice(0, this.MAX_HISTORY);
+        
+        // Обновляем предпочтения по категориям
+        const keywords = this.extractKeywords(videoPath);
+        this.updateCategoryPreferences(keywords);
+
+        // Сохраняем изменения
+        await this.saveData();
     }
 
     async getRecommendations(currentVideoPath, allVideos) {
-        // Получаем метаданные текущего видео
         const currentMetadata = await this.getVideoMetadata(currentVideoPath);
         
-        // Формируем рекомендации
         const recommendations = await Promise.all(
             allVideos
                 .filter(videoPath => videoPath !== currentVideoPath)
@@ -126,7 +469,14 @@ class RecommendationSystem {
                         { ...currentMetadata, path: currentVideoPath },
                         { ...metadata, path: videoPath }
                     );
-                    return { videoPath, metadata, score };
+                    return { 
+                        videoPath, 
+                        metadata: {
+                            ...metadata,
+                            views: this.watchHistory.get(videoPath) || 0 // Количество просмотров пользователем
+                        }, 
+                        score 
+                    };
                 })
         );
 
@@ -166,6 +516,51 @@ class RecommendationSystem {
 
 module.exports = RecommendationSystem;
 
+File: videoIndexer.js
+Content:
+const fs = require('fs');
+const path = require('path');
+
+function indexVideos(folders) {
+    try {
+        console.log(folders);
+        let videos = [];
+        const videoExtensions = ['.mp4', '.webm', '.mkv', '.avi', '.mov', '.flv'];
+
+        folders.forEach(folder => {
+            const files = walkSync(folder);
+            files.forEach(file => {
+                if (videoExtensions.includes(path.extname(file).toLowerCase()) && 
+                    fs.existsSync(file)) {
+                    videos.push(file);
+                }
+            });
+        });
+
+        return videos;
+    } catch (error) {
+        console.error('Error in indexVideos:', error);
+        return [];
+    }
+}
+
+function walkSync(dir) {
+    let files = [];
+    const list = fs.readdirSync(dir);
+    list.forEach(file => {
+        file = path.join(dir, file);
+        const stat = fs.statSync(file);
+        if (stat && stat.isDirectory()) {
+            files = files.concat(walkSync(file));
+        } else {
+            files.push(file);
+        }
+    });
+    return files;
+}
+
+module.exports = { indexVideos };
+
 File: pages\player.html
 Content:
 <!DOCTYPE html>
@@ -174,7 +569,7 @@ Content:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LocalTube - Video Player</title>
-    <link rel="stylesheet" href="styles.css">
+    <!-- <link rel="stylesheet" href="styles.css"> -->
     <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css">
 </head>
 <body>
@@ -190,7 +585,7 @@ Content:
                     <button id="share-button">Поделиться</button>
                 </div>
                 <div id="video-description">
-                    <p id="description-text"></p>
+                    <p style="white-space: pre-line" id="description-text"></p>
                     <button id="show-more">Показать больше</button>
                 </div>
             </div>
@@ -258,7 +653,7 @@ Content:
     
             const description = document.createElement('div');
             description.className = 'recommendation-description';
-            description.textContent = metadata.description;
+            description.textContent = metadata.description.replace(/`n`r/g, '\n');
     
             const views = document.createElement('div');
             views.className = 'recommendation-views';
@@ -277,8 +672,10 @@ Content:
                     type: 'video',
                     sources: [{ src: videoPath, type: 'video/mp4' }]
                 };
+                window.currentVideoSource = window.currentVideo;
                 loadVideoMetadata(videoPath);
                 recommendationSystem.updateWatchHistory(videoPath);
+                updateRecommendations();
             });
     
             container.appendChild(recommendationItem);
@@ -314,28 +711,30 @@ Content:
                     'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'
                 ],
                 settings: ['captions', 'quality', 'speed', 'loop'],
-                tooltips: { controls: true, seek: true }
+                tooltips: { controls: true, seek: true },
+                debug: false
             });
         }
         if (window.playerState) {
             window.playerState.isMinimized = false;
         }
         if (window.currentVideo) {
+            await updateRecommendations();
+            await loadVideoMetadata(window.currentVideo);
             // Проверяем, не совпадает ли текущий источник с новым
+            StartGlowAnimation();
             if (window.currentVideoSource === window.currentVideo) {
                 console.log('Same video, skipping...');
                 return;
             }
             filePath = window.currentVideo;
             try {
-                loadVideoMetadata(filePath);
                 window.globalPlayer.source = {
                     type: 'video',
                     sources: [{ src: filePath, type: 'video/mp4' }],
                 };
-                recommendationSystem.updateWatchHistory(window.currentVideo);
-                await updateRecommendations();
                 window.currentVideoSource = window.currentVideo;
+                recommendationSystem.updateWatchHistory(window.currentVideo);
                
                 window.globalPlayer.on('loadedmetadata', () => {
                     window.globalPlayer.play().catch(error => {
@@ -358,26 +757,26 @@ Content:
     }
 
 
-    async function loadVideo(filePath) {
-        videoPlayer.src = filePath;
-        try {
-            await loadVideoMetadata(filePath);
+    // async function loadVideo(filePath) {
+    //     videoPlayer.src = filePath;
+    //     try {
+    //         await loadVideoMetadata(filePath);
 
-            player.source = {
-                type: 'video',
-                sources: [{ src: filePath, type: 'video/mp4' }],
-            };
+    //         player.source = {
+    //             type: 'video',
+    //             sources: [{ src: filePath, type: 'video/mp4' }],
+    //         };
            
-            player.on('loadedmetadata', () => {
-                player.play().catch(error => {
-                    console.error('Error auto-playing video:', error);
-                });
-            });
+    //         player.on('loadedmetadata', () => {
+    //             player.play().catch(error => {
+    //                 console.error('Error auto-playing video:', error);
+    //             });
+    //         });
 
-        } catch (error) {
-            console.error('Error loading video:', error);
-        }
-    }
+    //     } catch (error) {
+    //         console.error('Error loading video:', error);
+    //     }
+    // }
 
     function loadVideoMetadata(filePath) {
         return new Promise((resolve, reject) => {
@@ -386,25 +785,30 @@ Content:
             ffmpeg.ffprobe(filePath, (err, metadata) => {
                 if (err) {
                     console.error('Error reading metadata:', err);
-                    reject(err);
+                    const fallbackData = {
+                        title: path.basename(filePath, path.extname(filePath))
+                            .replace(/-\d+$/, '')
+                            .replace(/_/g, ' '),
+                        format: 'Unknown format',
+                        description: 'No description available'
+                    };
+                    
+                    updateVideoInfo(fallbackData);
+                    resolve(fallbackData);
                     return;
                 }
-
+    
                 try {
-                    const videoStream = metadata.streams.find(stream => stream.codec_type === 'video');
-                    
-                    const title = path.basename(filePath, path.extname(filePath))
-                        .replace(/-\d+$/, '')
-                        .replace(/_/g, ' ');
-
-                    videoTitle.textContent = title;
-                    videoMeta.textContent = metadata.format.format_name || 'Unknown format';
-                    descriptionText.textContent = 'No description available';
-
-                    resolve({
-                        title: title,
-                        format: metadata.format.format_name || 'Unknown format'
-                    });
+                    const videoData = {
+                        title: metadata.format.tags?.title || path.basename(filePath, path.extname(filePath))
+                            .replace(/-\d+$/, '')
+                            .replace(/_/g, ' '),
+                        format: metadata.format.format_name || 'Unknown format',
+                        description: metadata.format.tags?.comment?.replace(/`n`r/g, '\n') || 'No description available'
+                    };
+    
+                    updateVideoInfo(videoData);
+                    resolve(videoData);
                 } catch (error) {
                     console.error('Error processing metadata:', error);
                     reject(error);
@@ -412,15 +816,301 @@ Content:
             });
         });
     }
+    
+    function updateVideoInfo(videoData) {
+        videoTitle.textContent = videoData.title;
+        videoMeta.textContent = videoData.format;
+        
+        const descriptionText = document.getElementById('description-text');
+        let showMoreButton = document.getElementById('show-more');
+        
+        // Если кнопка не существует, создаем ее
+        if (!showMoreButton) {
+            showMoreButton = document.createElement('button');
+            showMoreButton.id = 'show-more';
+            descriptionText.parentNode.insertBefore(showMoreButton, descriptionText.nextSibling);
+        }
+        
+        const maxHeight = 100; // Максимальная высота в пикселях для сокращенного описания
+        
+        descriptionText.textContent = videoData.description;
+        descriptionText.style.maxHeight = `${maxHeight}px`;
+        descriptionText.style.overflow = 'hidden';
+        
+        showMoreButton.style.display = 'block';
+        showMoreButton.textContent = 'Показать больше';
+        
+        function toggleDescription() {
+            if (descriptionText.style.maxHeight) {
+                descriptionText.style.maxHeight = null;
+                showMoreButton.textContent = 'Показать меньше';
+            } else {
+                descriptionText.style.maxHeight = `${maxHeight}px`;
+                showMoreButton.textContent = 'Показать больше';
+            }
+        }
+        
+        showMoreButton.onclick = toggleDescription;
+        
+        // Проверяем, нужна ли кнопка "Показать больше"
+        setTimeout(() => {
+            if (descriptionText.scrollHeight <= maxHeight) {
+                showMoreButton.style.display = 'none';
+            } else {
+                showMoreButton.style.display = 'block';
+            }
+        }, 0);
+    }
 
     function formatBitrate(bitrate) {
         if (!bitrate) return 'Unknown bitrate';
         return `${Math.round(bitrate / 1000)} kbps`;
     }
 
+    // В player.js
+    function StartGlowAnimation() {
+        const mainPlayer = document.querySelector('.main-player');
+        let glowElement = document.querySelector('.video-glow');
+        
+        if (!glowElement) {
+            glowElement = document.createElement('div');
+            glowElement.classList.add('video-glow');
+            mainPlayer.prepend(glowElement);
+        }
+    
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    
+        // Храним предыдущие значения для интерполяции
+        const colorHistory = Array(5).fill({ r: 0, g: 0, b: 0, opacity: 0 });
+        let prevColors = { r: 0, g: 0, b: 0, opacity: 0 };
+        let targetColors = { r: 0, g: 0, b: 0, opacity: 0 };
+        let isAnimating = false;
+        
+        function bezierEasing(t) {
+            return t * t * (3 - 2 * t); // Более плавная кривая
+        }
+    
+        // Функция плавной интерполяции
+        function smoothLerp(start, end, factor) {
+            const t = bezierEasing(factor);
+            return start + (end - start) * t;
+        }
+    
+        // Функция для вычисления среднего значения из истории
+        function getAverageFromHistory() {
+            const sum = colorHistory.reduce((acc, color) => ({
+                r: acc.r + color.r,
+                g: acc.g + color.g,
+                b: acc.b + color.b,
+                opacity: acc.opacity + color.opacity
+            }), { r: 0, g: 0, b: 0, opacity: 0 });
+    
+            return {
+                r: sum.r / colorHistory.length,
+                g: sum.g / colorHistory.length,
+                b: sum.b / colorHistory.length,
+                opacity: sum.opacity / colorHistory.length
+            };
+        }
+
+        function analyzeVideo() {
+            const video = window.globalPlayer.media;
+        
+            if (!video || video.readyState < 3) {
+                return;
+            }
+        
+            try {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+                // Увеличим область захвата цвета
+                const edgeWidth = Math.floor(canvas.width * 0.2); // Увеличили с 0.1 до 0.2
+                const edgeHeight = Math.floor(canvas.height * 0.2);
+        
+                // Берем больше данных с краев и центра
+                const centerX = Math.floor(canvas.width / 2 - edgeWidth / 2);
+                const centerY = Math.floor(canvas.height / 2 - edgeHeight / 2);
+        
+                const topData = ctx.getImageData(0, 0, canvas.width, edgeHeight).data;
+                const bottomData = ctx.getImageData(0, canvas.height - edgeHeight, canvas.width, edgeHeight).data;
+                const leftData = ctx.getImageData(0, 0, edgeWidth, canvas.height).data;
+                const rightData = ctx.getImageData(canvas.width - edgeWidth, 0, edgeWidth, canvas.height).data;
+                const centerData = ctx.getImageData(centerX, centerY, edgeWidth, edgeHeight).data;
+        
+                const allData = [...topData, ...bottomData, ...leftData, ...rightData, ...centerData];
+        
+                let r = 0, g = 0, b = 0, samples = 0;
+                let maxBrightness = 0;
+        
+                // Анализируем каждый восьмой пиксель для оптимизации
+                for (let i = 0; i < allData.length; i += 8) {
+                    const pixelR = allData[i];
+                    const pixelG = allData[i + 1];
+                    const pixelB = allData[i + 2];
+                    
+                    // Усиливаем яркие цвета
+                    const pixelBrightness = (pixelR + pixelG + pixelB) / 3;
+                    maxBrightness = Math.max(maxBrightness, pixelBrightness);
+        
+                    r += pixelR;
+                    g += pixelG;
+                    b += pixelB;
+                    samples++;
+                }
+        
+                r = Math.round(r / samples);
+                g = Math.round(g / samples);
+                b = Math.round(b / samples);
+        
+                // Усиливаем цвета
+                const colorEnhanceFactor = 1.5; // Фактор усиления цвета
+                r = Math.min(255, Math.round(r * colorEnhanceFactor));
+                g = Math.min(255, Math.round(g * colorEnhanceFactor));
+                b = Math.min(255, Math.round(b * colorEnhanceFactor));
+
+                // Рассчитываем яркость и непрозрачность
+                const brightness = maxBrightness / 255;
+                const opacity = Math.min(Math.max(brightness * 0.8, 0.2), 0.7); // Минимальная прозрачность 0.2, максимальная 0.7
+        
+                const newColors = { r, g, b, opacity };
+        
+                colorHistory.shift();
+                colorHistory.push(newColors);
+
+                // Обновляем целевые значения
+                const averageColors = getAverageFromHistory();
+                targetColors = averageColors;
+        
+                if (!isAnimating) {
+                    isAnimating = true;
+                    animateGlow();
+                }
+            } catch (error) {
+                console.error('Error in video analysis:', error);
+            }
+        }
+        
+        function animateGlow() {
+            // Используем очень маленький шаг для максимальной плавности
+            const factor = 0.03;
+    
+            // Применяем сглаженную интерполяцию
+            prevColors.r = smoothLerp(prevColors.r, targetColors.r, factor);
+            prevColors.g = smoothLerp(prevColors.g, targetColors.g, factor);
+            prevColors.b = smoothLerp(prevColors.b, targetColors.b, factor);
+            prevColors.opacity = smoothLerp(prevColors.opacity, targetColors.opacity, factor);
+    
+            // Создаем градиент с промежуточными точками для большей плавности
+            glowElement.style.background = `
+                linear-gradient(
+                    rgba(${Math.round(prevColors.r)},${Math.round(prevColors.g)},${Math.round(prevColors.b)},${prevColors.opacity}) 0%,
+                    rgba(${Math.round(prevColors.r)},${Math.round(prevColors.g)},${Math.round(prevColors.b)},${prevColors.opacity * 0.8}) 40%,
+                    rgba(${Math.round(prevColors.r)},${Math.round(prevColors.g)},${Math.round(prevColors.b)},${prevColors.opacity * 0.5}) 70%,
+                    rgba(${Math.round(prevColors.r)},${Math.round(prevColors.g)},${Math.round(prevColors.b)},0) 100%
+                )
+            `;
+    
+            // Проверяем разницу с большей точностью
+            const isDifferenceSignificant = 
+                Math.abs(prevColors.r - targetColors.r) > 0.05 ||
+                Math.abs(prevColors.g - targetColors.g) > 0.05 ||
+                Math.abs(prevColors.b - targetColors.b) > 0.05 ||
+                Math.abs(prevColors.opacity - targetColors.opacity) > 0.0005;
+    
+            if (isDifferenceSignificant) {
+                requestAnimationFrame(animateGlow);
+            } else {
+                isAnimating = false;
+            }
+        }
+    
+        // Стили для glow эффекта
+        const style = document.createElement('style');
+        style.textContent = `
+            .video-glow {
+                position: absolute;
+                margin: 20px 20px 20px 6%;
+                width: 60vw;
+                aspect-ratio: 16/9;
+                pointer-events: none;
+                z-index: -1;
+                filter: blur(70px);
+                transition: background 0.3s ease-out;
+                transform: scale(1.1) translateY(10%);
+            }
+
+            @media (max-width: 1200px) {
+                .video-glow {
+                    width: calc(100vw - 40px);
+                    margin: 20px 20px 20px 10px;
+                    transform: scale(1.1) translateY(10%);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        function throttle(func, limit) {
+            let inThrottle;
+            return function(...args) {
+                if (!inThrottle) {
+                    func.apply(this, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            };
+        }
+        
+        // Создаем throttled версию analyzeVideo
+        const throttledAnalyze = throttle(analyzeVideo, 1000);
+        
+        // Используем requestAnimationFrame более эффективно
+        let animationFrameId = null;
+        
+        function startAnalysis() {
+            if (animationFrameId) return; // Предотвращаем множественные запуски
+        
+            function analyze() {
+                throttledAnalyze();
+                animationFrameId = requestAnimationFrame(analyze);
+            }
+        
+            animationFrameId = requestAnimationFrame(analyze);
+        }
+        
+        function stopAnalysis() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+        }
+        
+        // Обработчики событий плеера
+        window.globalPlayer.on('pause ended', stopAnalysis);
+        window.globalPlayer.on('play', startAnalysis);
+        window.customEvents.on('minimizedChanged', (value) => {
+            if (value === true) {
+              stopAnalysis();
+            } else if (value === false) {
+              startAnalysis();
+            }
+          });
+        
+        // Запускаем анализ
+        startAnalysis();
+        
+        // Функция очистки
+        return () => {
+            stopAnalysis();
+            if (glowElement) {
+                glowElement.remove();
+            }
+        };
+    }
     // Инициализация плеера при загрузке страницы
     initPlayer();
     return { cleanup };
 })();
-
 

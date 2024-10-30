@@ -1,4 +1,4 @@
-
+(function() {
 const folderList = document.getElementById('folder-list');
 const addFolderButton = document.getElementById('add-folder');
 const backButton = document.getElementById('back-button');
@@ -23,8 +23,6 @@ addFolderButton.addEventListener('click', () => {
     ipcRenderer.send('add-folder');
 });
 
-backButton.addEventListener('click', () => {
-    ipcRenderer.send('back-to-main');
-});
 
 ipcRenderer.send('get-folders');
+})();

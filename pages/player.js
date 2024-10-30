@@ -66,6 +66,7 @@
                     type: 'video',
                     sources: [{ src: videoPath, type: 'video/mp4' }]
                 };
+                window.currentVideoSource = window.currentVideo;
                 loadVideoMetadata(videoPath);
                 recommendationSystem.updateWatchHistory(videoPath);
                 updateRecommendations();
@@ -483,6 +484,13 @@
         // Обработчики событий плеера
         window.globalPlayer.on('pause ended', stopAnalysis);
         window.globalPlayer.on('play', startAnalysis);
+        window.customEvents.on('minimizedChanged', (value) => {
+            if (value === true) {
+              stopAnalysis();
+            } else if (value === false) {
+              startAnalysis();
+            }
+          });
         
         // Запускаем анализ
         startAnalysis();

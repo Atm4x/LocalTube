@@ -1,0 +1,75 @@
+:root {
+    --background-color: #f9f9f9;
+    --text-color: #333;
+    --header-bg: #fff;
+    --card-bg: #fff;
+    --primary-color: #065fd4;
+}
+
+.dark-theme {
+    --background-color: #181818;
+    --text-color: #fff;
+    --header-bg: #202020;
+    --card-bg: #282828;
+    --primary-color: #3ea6ff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+main {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.settings-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+#folder-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#folder-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--card-bg);
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+#folder-list li button {
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#add-folder {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+}

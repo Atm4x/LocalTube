@@ -3,6 +3,7 @@ const path = require('path');
 
 function indexVideos(folders) {
     try {
+        console.log(folders);
         let videos = [];
         const videoExtensions = ['.mp4', '.webm', '.mkv', '.avi', '.mov', '.flv'];
 

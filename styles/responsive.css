@@ -1,0 +1,85 @@
+/* @media (max-width: 1200px) {
+    .grid-wrapper {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .grid-wrapper {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+} */
+
+
+/* Обновляем медиа-запросы */
+@media (max-width: 1200px) {
+    .video-card {
+        flex: 0 0 calc(33.333% - 14px);
+        max-width: calc(33.333% - 14px);
+    }
+}
+
+@media (max-width: 900px) {
+    .video-card {
+        flex: 0 0 calc(50% - 10px);
+        max-width: calc(50% - 10px);
+    }
+}
+
+@media (max-width: 600px) {
+    .video-card {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+/* 
+@media (max-width: 600px) {
+    .grid-wrapper {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+} */
+
+@media (max-width: 1200px) {
+    .video-card {
+        flex: 0 0 calc(33.333% - 20px); /* 3 карточки в ряд */
+    }
+}
+
+@media (max-width: 900px) {
+    .video-card {
+        flex: 0 0 calc(50% - 20px); /* 2 карточки в ряд */
+    }
+}
+
+@media (max-width: 600px) {
+    .video-card {
+        flex: 0 0 calc(100% - 20px); /* 1 карточка в ряд */
+    }
+}
+
+
+@media (max-width: 1200px) {
+    .main-player {
+        flex-direction: column;
+    }
+    .video-container {
+        max-width: 100%;
+    }
+    
+    .recommendations {
+        position: relative;
+        width: 100%;
+    }
+
+    .unified-player.maximized {
+        width: calc(100vw - 40px);
+        margin: 20px 20px 20px 10px;
+    }
+
+    .video-info {
+        margin-left: 0px;
+        width: 100%;
+        padding-top: calc((100vw - 40px) * 9 / 16 + 20px);
+    }
+}

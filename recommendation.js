@@ -1,7 +1,6 @@
 const fs = require('fs').promises;
 const path = require('path');
-const { ipcRenderer }   = require('electron');
-
+const { ipcRenderer } = require('electron');
 
 class RecommendationSystem {
     constructor() {
@@ -10,31 +9,54 @@ class RecommendationSystem {
         
         // Загружаем сохраненные данные при инициализации
         this.loadData().catch(() => {
-            // Если файл не существует или произошла ошибка, используем значения по умолчанию
             this.watchHistory = new Map();
             this.lastWatched = [];
             this.categoryPreferences = new Map();
+            this.videoSimilarityCache = new Map();
         });
         
         this.MAX_HISTORY = 50;
+        this.DIVERSITY_THRESHOLD = 0.3; // Порог разнообразия
     }
 
     extractKeywords(filename) {
         if (!filename) return [];
-        // Очищаем имя файла от расширения и специальных символов
-        return filename
-            .replace(/\.[^/.]+$/, "") // убираем расширение
+        
+        // Улучшенное извлечение ключевых слов
+        const words = filename
+            .replace(/\.[^/.]+$/, "")
             .toLowerCase()
-            .replace(/[^\w\s]/g, '')
-            .split(/\s+/)
+            .replace(/[^\w\s-]/g, ' ')
+            .split(/[\s-]+/)
             .filter(word => word.length > 2);
+
+        // Добавляем n-граммы для лучшего сопоставления
+        const ngrams = [];
+        for (let i = 0; i < words.length - 1; i++) {
+            ngrams.push(words[i] + ' ' + words[i + 1]);
+        }
+
+        return [...new Set([...words, ...ngrams])];
     }
 
     async loadData() {
-        const data = JSON.parse(await fs.readFile(this.appDataPath, 'utf8'));
-        this.watchHistory = new Map(Object.entries(data.watchHistory));
-        this.lastWatched = data.lastWatched;
-        this.categoryPreferences = new Map(Object.entries(data.categoryPreferences));
+        try {
+            const data = JSON.parse(await fs.readFile(this.appDataPath, 'utf8'));
+            this.watchHistory = new Map(Object.entries(data.watchHistory));
+            this.lastWatched = data.lastWatched;
+            this.categoryPreferences = new Map(Object.entries(data.categoryPreferences));
+            this.videoSimilarityCache = new Map();
+        } catch (error) {
+            console.error('Error loading recommendations data:', error);
+            this.resetData();
+        }
+    }
+
+    resetData() {
+        this.watchHistory = new Map();
+        this.lastWatched = [];
+        this.categoryPreferences = new Map();
+        this.videoSimilarityCache = new Map();
     }
 
     async saveData() {
@@ -46,96 +68,129 @@ class RecommendationSystem {
         await fs.writeFile(this.appDataPath, JSON.stringify(data), 'utf8');
     }
 
-    // Метод для обновления предпочтений пользователя на основе просмотренного видео
     updateCategoryPreferences(keywords) {
+        const decayFactor = 0.95; // Фактор затухания для старых предпочтений
+        
+        // Применяем затухание к существующим предпочтениям
+        for (const [key, value] of this.categoryPreferences.entries()) {
+            this.categoryPreferences.set(key, value * decayFactor);
+        }
+
+        // Обновляем предпочтения с новыми ключевыми словами
         keywords.forEach(keyword => {
-            this.categoryPreferences.set(
-                keyword, 
-                (this.categoryPreferences.get(keyword) || 0) + 1
-            );
+            const currentValue = this.categoryPreferences.get(keyword) || 0;
+            this.categoryPreferences.set(keyword, currentValue + 1);
         });
     }
 
     calculateSimilarity(currentVideo, candidateVideo) {
+        const cacheKey = `${currentVideo.path}|${candidateVideo.path}`;
+        if (this.videoSimilarityCache.has(cacheKey)) {
+            return this.videoSimilarityCache.get(cacheKey);
+        }
+
         let score = 0;
-        
-        // Получаем ключевые слова
         const keywords1 = this.extractKeywords(currentVideo.title);
         const keywords2 = this.extractKeywords(candidateVideo.title);
-        
+
+        // Базовое сходство по ключевым словам
         if (keywords1.length && keywords2.length) {
             const commonWords = keywords1.filter(word => keywords2.includes(word));
             score += (commonWords.length * 2) / (keywords1.length + keywords2.length);
-
-            // Добавляем бонус за предпочитаемые категории
-            keywords2.forEach(keyword => {
-                const preferenceScore = this.categoryPreferences.get(keyword) || 0;
-                score += (preferenceScore * 0.2); // Увеличиваем вес видео с предпочитаемыми категориями
-            });
         }
 
-        // Учитываем частоту просмотров этого конкретного видео
-        const watchCount = this.watchHistory.get(candidateVideo.path) || 0;
-        score += Math.min(watchCount, 5) * 0.15; // Увеличиваем вес для часто просматриваемых видео
+        // Учитываем предпочтения пользователя
+        keywords2.forEach(keyword => {
+            const preferenceScore = this.categoryPreferences.get(keyword) || 0;
+            score += preferenceScore * 0.1;
+        });
 
-        // Бонус за недавно просмотренные похожие видео
-        const recentlyWatchedBonus = this.lastWatched
-            .slice(0, 10) // берем последние 10 просмотренных
-            .includes(candidateVideo.path) ? -0.5 : 0; // Понижаем рейтинг недавно просмотренных
-        score += recentlyWatchedBonus;
+        // Штраф за недавний просмотр
+        const recentIndex = this.lastWatched.indexOf(candidateVideo.path);
+        if (recentIndex !== -1) {
+            score -= (this.lastWatched.length - recentIndex) / this.lastWatched.length;
+        }
 
-        // Учитываем длительность
+        // Учитываем длительность видео
         if (currentVideo.duration && candidateVideo.duration) {
-            const durationDiff = Math.abs(currentVideo.duration - candidateVideo.duration);
-            const maxDuration = Math.max(currentVideo.duration, candidateVideo.duration);
-            score += 1 - (durationDiff / maxDuration);
+            const durationRatio = Math.min(currentVideo.duration, candidateVideo.duration) / 
+                                Math.max(currentVideo.duration, candidateVideo.duration);
+            score += durationRatio * 0.2;
         }
 
+        // Добавляем элемент случайности для разнообразия
+        score += Math.random() * this.DIVERSITY_THRESHOLD;
+
+        // Кешируем результат
+        this.videoSimilarityCache.set(cacheKey, score);
+        
         return score;
     }
 
     async updateWatchHistory(videoPath) {
         // Обновляем количество просмотров
-        this.watchHistory.set(videoPath, (this.watchHistory.get(videoPath) || 0) + 1);
+        const currentCount = this.watchHistory.get(videoPath) || 0;
+        this.watchHistory.set(videoPath, currentCount + 1);
         
         // Обновляем список последних просмотренных
         this.lastWatched = [videoPath, ...this.lastWatched.filter(v => v !== videoPath)]
             .slice(0, this.MAX_HISTORY);
         
-        // Обновляем предпочтения по категориям
-        const keywords = this.extractKeywords(videoPath);
+        // Обновляем предпочтения
+        const keywords = this.extractKeywords(path.basename(videoPath));
         this.updateCategoryPreferences(keywords);
 
-        // Сохраняем изменения
+        // Очищаем кеш сходства для этого видео
+        for (const key of this.videoSimilarityCache.keys()) {
+            if (key.includes(videoPath)) {
+                this.videoSimilarityCache.delete(key);
+            }
+        }
+
         await this.saveData();
     }
 
     async getRecommendations(currentVideoPath, allVideos) {
         const currentMetadata = await this.getVideoMetadata(currentVideoPath);
         
-        const recommendations = await Promise.all(
-            allVideos
-                .filter(videoPath => videoPath !== currentVideoPath)
-                .map(async (videoPath) => {
-                    const metadata = await this.getVideoMetadata(videoPath);
-                    const score = this.calculateSimilarity(
-                        { ...currentMetadata, path: currentVideoPath },
-                        { ...metadata, path: videoPath }
-                    );
-                    return { 
-                        videoPath, 
-                        metadata: {
-                            ...metadata,
-                            views: this.watchHistory.get(videoPath) || 0 // Количество просмотров пользователем
-                        }, 
-                        score 
-                    };
-                })
+        // Фильтруем текущее видео и последние 3 просмотренных
+        const recentlyWatched = new Set(this.lastWatched.slice(0, 3));
+        const eligibleVideos = allVideos.filter(videoPath => 
+            videoPath !== currentVideoPath && !recentlyWatched.has(videoPath)
         );
 
-        return recommendations
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 10);
+        // Получаем рекомендации с метаданными
+        const recommendations = await Promise.all(
+            eligibleVideos.map(async (videoPath) => {
+                const metadata = await this.getVideoMetadata(videoPath);
+                const score = this.calculateSimilarity(
+                    { ...currentMetadata, path: currentVideoPath },
+                    { ...metadata, path: videoPath }
+                );
+                return { 
+                    videoPath, 
+                    metadata: {
+                        ...metadata,
+                        views: this.watchHistory.get(videoPath) || 0
+                    }, 
+                    score 
+                };
+            })
+        );
+
+        // Сортируем и добавляем разнообразие
+        const sortedRecommendations = recommendations
+            .sort((a, b) => b.score - a.score);
+
+        // Перемешиваем топ-20 рекомендаций для большего разнообразия
+        const topRecommendations = sortedRecommendations.slice(0, 20);
+        for (let i = topRecommendations.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [topRecommendations[i], topRecommendations[j]] = 
+            [topRecommendations[j], topRecommendations[i]];
+        }
+
+        return topRecommendations.slice(0, 10);
     }
 
     async getVideoMetadata(videoPath) {
@@ -147,24 +202,22 @@ class RecommendationSystem {
                             .replace(/-\d+$/, '')
                             .replace(/_/g, ' '),
                         duration: 0,
-                        description: 'No description available',
-                        views: Math.floor(Math.random() * 1000) // Пример для демонстрации
+                        description: 'No description available'
                     });
                     return;
                 }
 
                 resolve({
-                    title: metadata.format.tags?.title || path.basename(videoPath, path.extname(videoPath))
-                        .replace(/-\d+$/, '')
-                        .replace(/_/g, ' '),
+                    title: metadata.format.tags?.title || 
+                           path.basename(videoPath, path.extname(videoPath))
+                           .replace(/-\d+$/, '')
+                           .replace(/_/g, ' '),
                     duration: parseInt(metadata.format.duration) || 0,
-                    description: metadata.format.tags?.comment || 'No description available',
-                    views: parseInt(metadata.format.tags?.views) || Math.floor(Math.random() * 1000)
+                    description: metadata.format.tags?.comment || 'No description available'
                 });
             });
         });
     }
 }
-
 
 module.exports = RecommendationSystem;

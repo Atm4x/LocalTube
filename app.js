@@ -9,8 +9,8 @@ let dragPlayer, dragPlayerEnd, toggleClickToPlayState
 const RecommendationSystem = require('./recommendation');
 const recommendationSystem  = new RecommendationSystem();
 
-const VideoPlayerManager = require('./components/video-player-manager');
-window.videoPlayerManager = new VideoPlayerManager();
+// const VideoPlayerManager = require('./components/video-player-manager');
+// window.videoPlayerManager = new VideoPlayerManager();
 
 const loadedScripts = {};
 window.currentVideo = null;
@@ -19,6 +19,12 @@ window.currentVideo = null;
 function setCurrentVideo(videoPath) {
     window.currentVideo = videoPath;
 }
+
+
+window.customEvents = new EventTarget();
+window.customEvents.on = function(eventName, handler) {
+    this.addEventListener(eventName, (event) => handler(event.detail));
+  };
 
 // Экспортируйте эту функцию:
 window.appFunctions = {

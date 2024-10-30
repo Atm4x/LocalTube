@@ -13,6 +13,18 @@ const activeDownloads = new Map();
 let mainWindow;
 let indexedFolders = [];
 
+
+const defaultThumbPath = path.join(__dirname, 'default-thumbnail.jpg');
+
+const thumbsDir = path.join(app.getPath('userData'), 'thumbnails');
+if (!fs.existsSync(thumbsDir)) {
+    fs.mkdirSync(thumbsDir);
+    if (fs.existsSync(defaultThumbPath)) {
+        fs.copyFileSync(defaultThumbPath, path.join(thumbsDir, 'default-thumbnail.jpg'));
+    }
+}
+
+
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1200,
@@ -85,7 +97,13 @@ ipcMain.on('remove-folder', (event, folder) => {
 
 ipcMain.on('index-videos', (event) => {
     const downloadPath = path.join(process.cwd(), 'downloads');
-    const videos = indexVideos([downloadPath]);
+    const allFolders = [...indexedFolders];
+    
+    if (fs.existsSync(downloadPath) && !allFolders.includes(downloadPath)) {
+        allFolders.unshift(downloadPath);
+    }
+
+    const videos = indexVideos(allFolders);
     
     const filteredVideos = videos.filter(video => 
         !Array.from(activeDownloads.values()).some(download => 
@@ -174,12 +192,6 @@ function saveSettings() {
     const settingsPath = path.join(app.getPath('userData'), 'settings.json');
     fs.writeFileSync(settingsPath, JSON.stringify(indexedFolders, null, 2));
 }
-
-const thumbsDir = path.join(app.getPath('userData'), 'thumbnails');
-if (!fs.existsSync(thumbsDir)) {
-    fs.mkdirSync(thumbsDir);
-}
-
 ipcMain.on('get-user-data-path', (event) => {
     event.returnValue = app.getPath('userData');
 });
@@ -190,6 +202,12 @@ const thumbnailCache = new Map();
 ipcMain.handle('get-video-thumbnail', async (event, videoPath) => {
     const videoHash = crypto.createHash('md5').update(videoPath).digest('hex');
     const thumbnailPath = path.join(thumbsDir, `${videoHash}.jpg`);
+    const defaultLocalThumb = path.join(thumbsDir, 'default-thumbnail.jpg');
+
+    // Проверяем наличие дефолтного изображения в папке thumbnails
+    if (!fs.existsSync(defaultLocalThumb) && fs.existsSync(defaultThumbPath)) {
+        fs.copyFileSync(defaultThumbPath, defaultLocalThumb);
+    }
 
     // Проверяем кеш
     if (thumbnailCache.has(videoPath)) {
@@ -204,18 +222,36 @@ ipcMain.handle('get-video-thumbnail', async (event, videoPath) => {
 
     // Создаем превью через ffmpeg
     return new Promise((resolve, reject) => {
-        ffmpeg(videoPath)
-            .on('end', () => {
-                thumbnailCache.set(videoPath, thumbnailPath);
-                resolve(thumbnailPath);
-            })
-            .on('error', reject)
-            .screenshots({
-                timestamps: ['10%'],
-                filename: path.basename(thumbnailPath),
-                folder: thumbsDir,
-                size: '320x180'
-            });
+        // Сначала проверяем наличие видеопотока
+        ffmpeg.ffprobe(videoPath, (err, metadata) => {
+            if (err) {
+                console.error('Error probing video:', err);
+                return resolve(defaultLocalThumb);
+            }
+
+            const hasVideoStream = metadata.streams.some(stream => stream.codec_type === 'video');
+            
+            if (!hasVideoStream) {
+                console.error('No video stream found');
+                return resolve(defaultLocalThumb);
+            }
+
+            ffmpeg(videoPath)
+                .on('end', () => {
+                    thumbnailCache.set(videoPath, thumbnailPath);
+                    resolve(thumbnailPath);
+                })
+                .on('error', (err) => {
+                    console.error('Error creating thumbnail:', err);
+                    resolve(defaultLocalThumb);
+                })
+                .screenshots({
+                    timestamps: ['10%'],
+                    filename: path.basename(thumbnailPath),
+                    folder: thumbsDir,
+                    size: '320x180'
+                });
+        });
     });
 });
 

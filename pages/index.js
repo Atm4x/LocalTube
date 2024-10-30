@@ -9,8 +9,6 @@
 
     let videoGrid;
     let allVideos = [];
-    const downloadPath = path.join(process.cwd(), 'downloads');
-
     function initIndex() {
 
         videoGrid = document.getElementById('video-grid');
@@ -90,9 +88,7 @@
     }
 
     function updateVideoList() {
-        if (fs.existsSync(downloadPath)) {
-            ipcRenderer.send('index-videos');
-        }
+        ipcRenderer.send('index-videos');
     }
 
     // Обработчики событий
