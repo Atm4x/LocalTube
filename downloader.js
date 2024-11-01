@@ -5,14 +5,24 @@ const { app } = require('electron');
 const fetch = require('node-fetch');
 const ffmetadata = require("ffmetadata");
 const util = require('util');
+const ffmpeg = require('fluent-ffmpeg');
 
+const isDevelopment = process.env.NODE_ENV === "development";
 
+let ffprobe;
+
+if (isDevelopment) {
+    ffprobe = require('ffprobe-static');
+} else {
+    ffmpeg.setFfmpegPath(path.join(process.resourcesPath, 'ffmpeg.exe'));
+    ffmpeg.setFfprobePath(path.join(process.resourcesPath, 'ffprobe.exe'));
+}
 
 class VideoDownloader {
     constructor() {
         this.API_KEY = '17npX4J2EVoGOkS07FKd3xZuyltiJkDRVHCQyjIXCu0';
         this.API_BASE_URL = 'http://w.vasys.ru:5000';
-        if (process.env.NODE_ENV === "development") {
+        if (isDevelopment) {
             // Для разработки
             this.downloadPath = path.join(__dirname, 'downloads');
         } else {
