@@ -9,11 +9,8 @@ on:
 
 jobs:
   build:
-    name: Build (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest, windows-latest]
+    name: Build (macOS)
+    runs-on: macos-latest
 
     steps:
       - name: Checkout repository
@@ -28,19 +25,12 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build Windows
-        if: matrix.os == 'windows-latest'
-        run: npm run build
-        
       - name: Build MacOS
-        if: matrix.os == 'macos-latest'
         run: npm run build:mac
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-build
-          path: |
-            dist/*.exe
-            dist/*.dmg
+          name: macos-build
+          path: dist/*.dmg
           if-no-files-found: ignore
