@@ -6,15 +6,20 @@ const fetch = require('node-fetch');
 const ffmetadata = require("ffmetadata");
 const util = require('util');
 
-const ffmpeg = require('fluent-ffmpeg');
+const { ffmpeg } = require('./ffmpeg-config');
 
-ffmpeg.setFfmpegPath("C:/FFmpeg/bin/ffmpeg.exe");
 
 class VideoDownloader {
     constructor() {
         this.API_KEY = '17npX4J2EVoGOkS07FKd3xZuyltiJkDRVHCQyjIXCu0';
         this.API_BASE_URL = 'http://w.vasys.ru:5000';
-        this.downloadPath = path.join(process.cwd(), 'downloads'); 
+        if (process.env.NODE_ENV === "development") {
+            // Для разработки
+            this.downloadPath = path.join(__dirname, 'downloads');
+        } else {
+            // Для production (собранного приложения)
+            this.downloadPath = path.join(process.execPath, '..', 'downloads');
+        }
         this.lastVideoInfo = null;
         
         if (!fs.existsSync(this.downloadPath)) {

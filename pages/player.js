@@ -2,7 +2,7 @@
 
 (function() {
     console.log("Player page loaded");
-
+    
     let videoPlayer, videoTitle, videoMeta, descriptionText, showMoreBtn, player;
     const unifiedPlayer = document.getElementById('unified-player');
 
@@ -174,7 +174,8 @@
 
     function loadVideoMetadata(filePath) {
         return new Promise((resolve, reject) => {
-            ffmpeg.setFfprobePath(ffprobe.path);
+            if(isDevelopment)
+                ffmpeg.setFfprobePath(ffprobe.path);
             
             ffmpeg.ffprobe(filePath, (err, metadata) => {
                 if (err) {
@@ -462,38 +463,52 @@
         
         // Используем requestAnimationFrame более эффективно
         let animationFrameId = null;
-        
-        function startAnalysis() {
-            if (animationFrameId) return; // Предотвращаем множественные запуски
-        
-            function analyze() {
-                throttledAnalyze();
-                animationFrameId = requestAnimationFrame(analyze);
-            }
-        
-            animationFrameId = requestAnimationFrame(analyze);
-        }
-        
-        function stopAnalysis() {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
-            }
-        }
-        
-        // Обработчики событий плеера
-        window.globalPlayer.on('pause ended', stopAnalysis);
-        window.globalPlayer.on('play', startAnalysis);
-        window.customEvents.on('minimizedChanged', (value) => {
-            if (value === true) {
-              stopAnalysis();
-            } else if (value === false) {
-              startAnalysis();
-            }
-          });
-        
-        // Запускаем анализ
+let isMinimized = false;
+
+function startAnalysis() {
+    // Проверяем все условия перед запуском
+    if (animationFrameId || isMinimized) {
+        return;
+    }
+
+    function analyze() {
+        throttledAnalyze();
+        animationFrameId = requestAnimationFrame(analyze);
+    }
+
+    animationFrameId = requestAnimationFrame(analyze);
+}
+
+function stopAnalysis() {
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+    }
+}
+
+// Обработчики событий плеера
+window.globalPlayer.on('pause ended', stopAnalysis);
+window.globalPlayer.on('play', () => {
+    if (!isMinimized) {
         startAnalysis();
+    }
+});
+
+window.customEvents.on('minimizedChanged', (value) => {
+    isMinimized = value;
+    if (value === true) {
+        stopAnalysis();
+    } else if (value === false && !window.globalPlayer.paused) {
+        // Используем !paused вместо isVideoPlaying
+        startAnalysis();
+    }
+});
+
+// Запускаем анализ только если видео играет и не минимизировано
+if (!window.globalPlayer.paused && !isMinimized) {
+    startAnalysis();
+}
+
         
         // Функция очистки
         return () => {

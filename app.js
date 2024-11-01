@@ -2,7 +2,7 @@ const { ipcRenderer } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const Plyr = require('plyr');
-const ffprobe = require('ffprobe-static');
+
 const ffmpeg = require('fluent-ffmpeg');
 const moment = require('moment');
 let dragPlayer, dragPlayerEnd, toggleClickToPlayState
@@ -11,6 +11,24 @@ const recommendationSystem  = new RecommendationSystem();
 
 // const VideoPlayerManager = require('./components/video-player-manager');
 // window.videoPlayerManager = new VideoPlayerManager();
+const isDevelopment = process.env.NODE_ENV === "development";
+
+let ffprobe;
+
+if (isDevelopment) {
+    ffprobe = require('ffprobe-static');
+    console.log('DEV');
+} else {
+    if (process.platform === 'win32') {
+        ffmpeg.setFfmpegPath(path.join(process.resourcesPath, 'ffmpeg.exe'));
+        ffmpeg.setFfprobePath(path.join(process.resourcesPath, 'ffprobe.exe'));
+    } else {
+        ffmpeg.setFfmpegPath(path.join(process.resourcesPath, 'ffmpeg'));
+        ffmpeg.setFfprobePath(path.join(process.resourcesPath, 'ffprobe'));
+    }
+    console.log('PROD');
+}
+
 
 const loadedScripts = {};
 window.currentVideo = null;
@@ -81,14 +99,15 @@ function cleanupCurrentPage() {
     if (window.gc) window.gc();
 }
 
-// Инициализация приложения
-// app.js - в функции initApp
+let startupVideo = false;
+
 async function initApp() {
     // Загрузка компонентов
     await loadComponent("header-component", "./components/header.html");
 
     // Загрузка начальной страницы
-    await loadPage("index");
+    if(startupVideo === false)
+        await loadPage("index");
 
     if (!loadedScripts['header']) {
         const headerScript = document.createElement('script');
@@ -98,9 +117,16 @@ async function initApp() {
         };
         document.body.appendChild(headerScript);
     }
+
 }
 
-
+ipcRenderer.on('startup-video', (event, videoPath) => {
+    if (fs.existsSync(videoPath)) {
+        startupVideo = true;
+        setCurrentVideo(videoPath);
+        loadPage('player');
+    }
+});
 
 // Запуск инициализации после загрузки DOM
 document.addEventListener("DOMContentLoaded", initApp);

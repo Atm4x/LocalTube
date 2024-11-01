@@ -1,4 +1,5 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog  } = require('electron');
+require('@electron/remote/main').initialize();
 const { indexVideos, addActiveDownload, removeActiveDownload } = require('./videoIndexer');
 const path = require('path');
 const fs = require('fs');
@@ -12,11 +13,26 @@ const activeDownloads = new Map();
 
 let mainWindow;
 let indexedFolders = [];
+let startupVideoPath = null;
 
 
-const defaultThumbPath = path.join(__dirname, 'default-thumbnail.jpg');
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+
+
+const defaultThumbPath =path.join(process.execPath, '..', 'default-thumbnail.jpg');
 
 const thumbsDir = path.join(app.getPath('userData'), 'thumbnails');
+
+if (process.argv.length > 1) {
+    // Получаем путь к видео из аргументов
+    startupVideoPath = process.argv[1];
+    
+    // Для разработки в Electron
+    if (startupVideoPath.endsWith('electron.exe')) {
+        startupVideoPath = process.argv[2];
+    }
+}
 if (!fs.existsSync(thumbsDir)) {
     fs.mkdirSync(thumbsDir);
     if (fs.existsSync(defaultThumbPath)) {
@@ -34,14 +50,49 @@ function createWindow() {
             contextIsolation: false,
             enableRemoteModule: true,
             webSecurity: false,
-            allowRunningInsecureContent: true
-        }
+            allowRunningInsecureContent: true,
+        },
+        icon: isDevelopment ? './assets/icon.ico' : path.join(process.resourcesPath, 'assets/icon.ico')
     });
 
+    require('@electron/remote/main').enable(mainWindow.webContents);
     mainWindow.setMenu(null);
     mainWindow.loadFile('app.html');
     //mainWindow.webContents.openDevTools();
-}
+    if(!isDevelopment) {
+        mainWindow.webContents.on('did-finish-load', () => {
+            if (startupVideoPath && fs.existsSync(startupVideoPath)) {
+                mainWindow.webContents.send('startup-video', startupVideoPath);
+            }
+        });
+    }
+}   
+
+// В main.js
+app.setAsDefaultProtocolClient('localtube');
+
+// Обработка открытия файлов в macOS
+app.on('open-file', (event, path) => {
+    event.preventDefault();
+    if (mainWindow) {
+        mainWindow.webContents.send('startup-video', path);
+    } else {
+        startupVideoPath = path;
+    }
+});
+
+// Обработка второго экземпляра приложения в Windows
+app.on('second-instance', (event, commandLine) => {
+    if (commandLine.length >= 2) {
+        const videoPath = commandLine[1];
+        if (mainWindow) {
+            mainWindow.webContents.send('startup-video', videoPath);
+            mainWindow.focus();
+        }
+    }
+});
+
+
 
 app.whenReady().then(() => {
     createWindow();
@@ -96,7 +147,10 @@ ipcMain.on('remove-folder', (event, folder) => {
 });
 
 ipcMain.on('index-videos', (event) => {
-    const downloadPath = path.join(process.cwd(), 'downloads');
+    let downloadPath;
+    if(isDevelopment) 
+        downloadPath = path.join(__dirname, 'downloads');
+    else downloadPath = path.join(process.execPath, '..', 'downloads');
     const allFolders = [...indexedFolders];
     
     if (fs.existsSync(downloadPath) && !allFolders.includes(downloadPath)) {

@@ -30,8 +30,10 @@ README not found.
 Folder Structure: LocalTube
 .git/ [Ignored .git folder]
 .gitignore [Skipped]
-app.html [Skipped]
-app.js [Skipped]
+app.html
+app.js
+assets/
+build.js [Skipped]
 components/
 default-thumbnail.jpg [Skipped]
 downloader.js [Skipped]
@@ -42,10 +44,10 @@ node_modules/
 package-lock.json [Skipped]
 package.json [Skipped]
 pages/
-recommendation.js
+recommendation.js [Skipped]
 styles/
 styles.css [Skipped]
-videoIndexer.js
+videoIndexer.js [Skipped]
 styles\base.css [Skipped]
 styles\components.css [Skipped]
 styles\grid.css [Skipped]
@@ -54,8 +56,8 @@ styles\modal.css [Skipped]
 styles\player.css [Skipped]
 styles\responsive.css [Skipped]
 pages\index.html [Skipped]
-pages\index.js [Skipped]
-pages\player.html
+pages\index.js
+pages\player.html [Skipped]
 pages\player.js
 pages\settings.html [Skipped]
 pages\settings.js [Skipped]
@@ -63,9 +65,184 @@ components\floating-player.html [Skipped]
 components\header.html [Skipped]
 components\header.js [Skipped]
 components\video-player-manager.js [Skipped]
+assets\icon.ico [Skipped]
 
 
 .git/ [Ignored .git folder]
+
+File: app.html
+Content:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalTube App</title>
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/header.css">
+    <link rel="stylesheet" href="styles/player.css">
+    <link rel="stylesheet" href="styles/grid.css">
+    <link rel="stylesheet" href="styles/modal.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/responsive.css">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css">
+</head>
+<body >
+    <!-- Header компонент -->
+    <div id="header-component"></div>
+
+    <div id="unified-player" class="unified-player minimized">
+        <div class="player-wrapper">
+            <video id="video-player" class="video-element"></video>
+            <div class="player-controls minimized-controls">
+                <button id="play-pause-btn" class="control-btn">⏯️</button>
+                <button id="expand-btn" class="control-btn">⤢</button>
+                <button id="close-btn" class="control-btn">✖️</button>
+            </div>
+        </div>
+    </div>
+    <!-- Контейнер для загрузки страниц -->
+    <main id="page-content">
+        
+    </main>
+
+    <!-- Download Modal компонент -->
+    <div id="download-modal-component"></div>
+
+    <!-- Скрипты -->
+    <script src="app.js"></script>
+</body>
+</html>
+
+File: app.js
+Content:
+const { ipcRenderer } = require('electron');
+const path = require('path');
+const fs = require('fs');
+const Plyr = require('plyr');
+const ffprobe = require('ffprobe-static');
+const ffmpeg = require('fluent-ffmpeg');
+const moment = require('moment');
+let dragPlayer, dragPlayerEnd, toggleClickToPlayState
+const RecommendationSystem = require('./recommendation');
+const recommendationSystem  = new RecommendationSystem();
+
+// const VideoPlayerManager = require('./components/video-player-manager');
+// window.videoPlayerManager = new VideoPlayerManager();
+
+const loadedScripts = {};
+window.currentVideo = null;
+
+// И добавьте функцию для установки текущего видео:
+function setCurrentVideo(videoPath) {
+    window.currentVideo = videoPath;
+}
+
+
+window.customEvents = new EventTarget();
+window.customEvents.on = function(eventName, handler) {
+    this.addEventListener(eventName, (event) => handler(event.detail));
+  };
+
+// Экспортируйте эту функцию:
+window.appFunctions = {
+    setCurrentVideo,
+    loadPage
+};
+
+// Функция для загрузки HTML компонентов
+async function loadComponent(id, componentPath) {
+    try {
+        const response = await fetch(componentPath);
+        if (!response.ok) throw new Error(`Failed to fetch component at ${componentPath}`);
+        const html = await response.text();
+        document.getElementById(id).innerHTML = html;
+    } catch (error) {
+        console.error("Error loading component:", error);
+    }
+}
+
+async function loadPage(pageName) {
+    try {
+        // Очищаем предыдущие ресурсы
+        cleanupCurrentPage();
+        
+        const response = await fetch(`./pages/${pageName}.html`);
+        if (!response.ok) throw new Error(`Failed to fetch page at ./pages/${pageName}.html`);
+        const html = await response.text();
+        document.getElementById("page-content").innerHTML = html;
+
+        // Удаляем предыдущий скрипт
+        if (loadedScripts[pageName]) {
+            document.body.removeChild(loadedScripts[pageName]);
+            delete loadedScripts[pageName];
+        }
+
+        const script = document.createElement('script');
+        script.src = `./pages/${pageName}.js`;
+        script.onload = () => {
+            loadedScripts[pageName] = script;
+        };
+        document.body.appendChild(script);
+    } catch (error) {
+        console.error("Error loading page:", error);
+    }
+}
+
+function cleanupCurrentPage() {
+    // Очищаем все обработчики событий
+    const pageContent = document.getElementById("page-content");
+    const oldElement = pageContent.cloneNode(false);
+    pageContent.parentNode.replaceChild(oldElement, pageContent);
+    
+    // Очищаем память от неиспользуемых ресурсов
+    if (window.gc) window.gc();
+}
+
+// Инициализация приложения
+// app.js - в функции initApp
+async function initApp() {
+    // Загрузка компонентов
+    await loadComponent("header-component", "./components/header.html");
+
+    // Загрузка начальной страницы
+    await loadPage("index");
+
+    if (!loadedScripts['header']) {
+        const headerScript = document.createElement('script');
+        headerScript.src = './components/header.js';
+        headerScript.onload = () => {
+            loadedScripts['header'] = headerScript;
+        };
+        document.body.appendChild(headerScript);
+    }
+}
+
+
+
+// Запуск инициализации после загрузки DOM
+document.addEventListener("DOMContentLoaded", initApp);
+
+// Обработчик для переключения страниц
+ipcRenderer.on('navigate', (event, pageName) => {
+    loadPage(pageName);
+});
+
+
+ipcRenderer.on('load-video', (event, videoPath) => {
+    if (document.getElementById('video-player')) {
+        // Если элемент плеера существует, отправляем событие загрузки видео
+        document.dispatchEvent(new CustomEvent('video-ready-to-load', { detail: videoPath }));
+    } else {
+        // Если элемент плеера еще не создан, ждем его создания
+        const checkInterval = setInterval(() => {
+            if (document.getElementById('video-player')) {
+                clearInterval(checkInterval);
+                document.dispatchEvent(new CustomEvent('video-ready-to-load', { detail: videoPath }));
+            }
+        }, 100);
+    }
+});
 
 File: main.js
 Content:
@@ -111,7 +288,7 @@ function createWindow() {
 
     mainWindow.setMenu(null);
     mainWindow.loadFile('app.html');
-    mainWindow.webContents.openDevTools();
+    //mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {
@@ -343,264 +520,122 @@ function checkMemoryUsage() {
 
 setInterval(checkMemoryUsage, 30000);
 
-File: recommendation.js
+File: pages\index.js
 Content:
-const fs = require('fs').promises;
-const path = require('path');
-const { ipcRenderer }   = require('electron');
 
+(function() {
+    console.log("Index page loaded");
 
-class RecommendationSystem {
-    constructor() {
-        this.appDataPath = ipcRenderer.sendSync('get-user-data-path');
-        this.appDataPath = path.join(this.appDataPath, 'recommendations.json');
-        
-        // Загружаем сохраненные данные при инициализации
-        this.loadData().catch(() => {
-            // Если файл не существует или произошла ошибка, используем значения по умолчанию
-            this.watchHistory = new Map();
-            this.lastWatched = [];
-            this.categoryPreferences = new Map();
-        });
-        
-        this.MAX_HISTORY = 50;
-    }
+    if (ipcRenderer) {
+        ipcRenderer.removeAllListeners('video-list');
+        ipcRenderer.removeAllListeners('video-download-complete');
+    };
 
-    extractKeywords(filename) {
-        if (!filename) return [];
-        // Очищаем имя файла от расширения и специальных символов
-        return filename
-            .replace(/\.[^/.]+$/, "") // убираем расширение
-            .toLowerCase()
-            .replace(/[^\w\s]/g, '')
-            .split(/\s+/)
-            .filter(word => word.length > 2);
-    }
+    let videoGrid;
+    let allVideos = [];
+    function initIndex() {
 
-    async loadData() {
-        const data = JSON.parse(await fs.readFile(this.appDataPath, 'utf8'));
-        this.watchHistory = new Map(Object.entries(data.watchHistory));
-        this.lastWatched = data.lastWatched;
-        this.categoryPreferences = new Map(Object.entries(data.categoryPreferences));
-    }
-
-    async saveData() {
-        const data = {
-            watchHistory: Object.fromEntries(this.watchHistory),
-            lastWatched: this.lastWatched,
-            categoryPreferences: Object.fromEntries(this.categoryPreferences)
-        };
-        await fs.writeFile(this.appDataPath, JSON.stringify(data), 'utf8');
-    }
-
-    // Метод для обновления предпочтений пользователя на основе просмотренного видео
-    updateCategoryPreferences(keywords) {
-        keywords.forEach(keyword => {
-            this.categoryPreferences.set(
-                keyword, 
-                (this.categoryPreferences.get(keyword) || 0) + 1
-            );
-        });
-    }
-
-    calculateSimilarity(currentVideo, candidateVideo) {
-        let score = 0;
-        
-        // Получаем ключевые слова
-        const keywords1 = this.extractKeywords(currentVideo.title);
-        const keywords2 = this.extractKeywords(candidateVideo.title);
-        
-        if (keywords1.length && keywords2.length) {
-            const commonWords = keywords1.filter(word => keywords2.includes(word));
-            score += (commonWords.length * 2) / (keywords1.length + keywords2.length);
-
-            // Добавляем бонус за предпочитаемые категории
-            keywords2.forEach(keyword => {
-                const preferenceScore = this.categoryPreferences.get(keyword) || 0;
-                score += (preferenceScore * 0.2); // Увеличиваем вес видео с предпочитаемыми категориями
-            });
+        videoGrid = document.getElementById('video-grid');
+        if (!videoGrid) {
+            console.error('Video grid element not found');
+            return;
         }
 
-        // Учитываем частоту просмотров этого конкретного видео
-        const watchCount = this.watchHistory.get(candidateVideo.path) || 0;
-        score += Math.min(watchCount, 5) * 0.15; // Увеличиваем вес для часто просматриваемых видео
+        ipcRenderer.send('index-videos');
+    }
 
-        // Бонус за недавно просмотренные похожие видео
-        const recentlyWatchedBonus = this.lastWatched
-            .slice(0, 10) // берем последние 10 просмотренных
-            .includes(candidateVideo.path) ? -0.5 : 0; // Понижаем рейтинг недавно просмотренных
-        score += recentlyWatchedBonus;
+    function displayVideos(videos) {
+        if (!videoGrid) return;
 
-        // Учитываем длительность
-        if (currentVideo.duration && candidateVideo.duration) {
-            const durationDiff = Math.abs(currentVideo.duration - candidateVideo.duration);
-            const maxDuration = Math.max(currentVideo.duration, candidateVideo.duration);
-            score += 1 - (durationDiff / maxDuration);
+        videoGrid.innerHTML = '';
+        if (videos.length === 0) {
+            videoGrid.innerHTML = '<p>No videos found in the downloads folder.</p>';
+            return;
         }
-
-        return score;
-    }
-
-    async updateWatchHistory(videoPath) {
-        // Обновляем количество просмотров
-        this.watchHistory.set(videoPath, (this.watchHistory.get(videoPath) || 0) + 1);
         
-        // Обновляем список последних просмотренных
-        this.lastWatched = [videoPath, ...this.lastWatched.filter(v => v !== videoPath)]
-            .slice(0, this.MAX_HISTORY);
+        const gridWrapper = document.createElement('div');
+        gridWrapper.className = 'grid-wrapper';
         
-        // Обновляем предпочтения по категориям
-        const keywords = this.extractKeywords(videoPath);
-        this.updateCategoryPreferences(keywords);
+        videos.forEach(videoPath => {
+            if (!fs.existsSync(videoPath)) {
+                return; // Пропускаем несуществующие файлы
+            }
 
-        // Сохраняем изменения
-        await this.saveData();
-    }
-
-    async getRecommendations(currentVideoPath, allVideos) {
-        const currentMetadata = await this.getVideoMetadata(currentVideoPath);
-        
-        const recommendations = await Promise.all(
-            allVideos
-                .filter(videoPath => videoPath !== currentVideoPath)
-                .map(async (videoPath) => {
-                    const metadata = await this.getVideoMetadata(videoPath);
-                    const score = this.calculateSimilarity(
-                        { ...currentMetadata, path: currentVideoPath },
-                        { ...metadata, path: videoPath }
-                    );
-                    return { 
-                        videoPath, 
-                        metadata: {
-                            ...metadata,
-                            views: this.watchHistory.get(videoPath) || 0 // Количество просмотров пользователем
-                        }, 
-                        score 
-                    };
-                })
-        );
-
-        return recommendations
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 10);
-    }
-
-    async getVideoMetadata(videoPath) {
-        return new Promise((resolve) => {
-            ffmpeg.ffprobe(videoPath, (err, metadata) => {
-                if (err) {
-                    resolve({
-                        title: path.basename(videoPath, path.extname(videoPath))
-                            .replace(/-\d+$/, '')
-                            .replace(/_/g, ' '),
-                        duration: 0,
-                        description: 'No description available',
-                        views: Math.floor(Math.random() * 1000) // Пример для демонстрации
-                    });
-                    return;
-                }
-
-                resolve({
-                    title: metadata.format.tags?.title || path.basename(videoPath, path.extname(videoPath))
-                        .replace(/-\d+$/, '')
-                        .replace(/_/g, ' '),
-                    duration: parseInt(metadata.format.duration) || 0,
-                    description: metadata.format.tags?.comment || 'No description available',
-                    views: parseInt(metadata.format.tags?.views) || Math.floor(Math.random() * 1000)
-                });
-            });
+            const videoCard = createVideoCard(videoPath);
+            gridWrapper.appendChild(videoCard);
         });
+        
+        videoGrid.appendChild(gridWrapper);
     }
-}
 
-
-module.exports = RecommendationSystem;
-
-File: videoIndexer.js
-Content:
-const fs = require('fs');
-const path = require('path');
-
-function indexVideos(folders) {
-    try {
-        console.log(folders);
-        let videos = [];
-        const videoExtensions = ['.mp4', '.webm', '.mkv', '.avi', '.mov', '.flv'];
-
-        folders.forEach(folder => {
-            const files = walkSync(folder);
-            files.forEach(file => {
-                if (videoExtensions.includes(path.extname(file).toLowerCase()) && 
-                    fs.existsSync(file)) {
-                    videos.push(file);
-                }
-            });
+    function createVideoCard(videoPath) {
+        const videoCard = document.createElement('div');
+        videoCard.className = 'video-card';
+    
+        // Создаем контейнер для превью
+        const thumbnailContainer = document.createElement('div');
+        thumbnailContainer.className = 'video-thumbnail-container';
+    
+        // Загружаем превью через main process
+        ipcRenderer.invoke('get-video-thumbnail', videoPath).then(thumbnailPath => {
+            const img = document.createElement('img');
+            img.src = thumbnailPath;
+            img.className = 'video-thumbnail';
+            thumbnailContainer.appendChild(img);
         });
-
-        return videos;
-    } catch (error) {
-        console.error('Error in indexVideos:', error);
-        return [];
+    
+        const videoInfo = document.createElement('div');
+        videoInfo.className = 'video-card-info';
+        
+        const title = path.basename(videoPath, path.extname(videoPath))
+            .replace(/-\d+$/, '')
+            .replace(/_/g, ' ');
+            
+        videoInfo.innerHTML = `<div class="video-card-title">${title}</div>`;
+    
+        videoCard.appendChild(thumbnailContainer);
+        videoCard.appendChild(videoInfo);
+    
+        videoCard.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (fs.existsSync(videoPath)) {
+                window.resetMaximizedPlayer();
+                window.appFunctions.setCurrentVideo(videoPath);
+                window.appFunctions.loadPage('player');
+            } else {
+                alert('Video file not found');
+                updateVideoList();
+            }
+        });
+    
+        return videoCard;
     }
-}
 
-function walkSync(dir) {
-    let files = [];
-    const list = fs.readdirSync(dir);
-    list.forEach(file => {
-        file = path.join(dir, file);
-        const stat = fs.statSync(file);
-        if (stat && stat.isDirectory()) {
-            files = files.concat(walkSync(file));
-        } else {
-            files.push(file);
+    function updateVideoList() {
+        ipcRenderer.send('index-videos');
+    }
+
+    // Обработчики событий
+    ipcRenderer.on('video-list', (event, videos) => {
+        allVideos = videos.filter(video => fs.existsSync(video));
+        displayVideos(allVideos);
+    });
+
+    ipcRenderer.on('video-download-complete', (event, videoPath) => {
+        if (fs.existsSync(videoPath)) {
+            setTimeout(updateVideoList, 1000);
         }
     });
-    return files;
-}
 
-module.exports = { indexVideos };
+    // Инициализация страницы
+    initIndex();
 
-File: pages\player.html
-Content:
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LocalTube - Video Player</title>
-    <!-- <link rel="stylesheet" href="styles.css"> -->
-    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.8/plyr.css">
-</head>
-<body>
-
-    <main class="main-player">
-        <div class="video-container">
-            <div class="video-info">
-                <h1 id="video-title"></h1>
-                <div id="video-meta"></div>
-                <div class="actions">
-                    <button id="like-button">Лайк</button>
-                    <button id="dislike-button">Дизлайк</button>
-                    <button id="share-button">Поделиться</button>
-                </div>
-                <div id="video-description">
-                    <p style="white-space: pre-line" id="description-text"></p>
-                    <button id="show-more">Показать больше</button>
-                </div>
-            </div>
-        </div>
-        <div class="recommendations">
-            <h2>Рекомендуемые видео</h2>
-            <div id="video-list" class="video-list"></div>
-        </div>
-    </main>
-
-    <script src="https://cdn.plyr.io/3.6.8/plyr.polyfilled.js"></script>
-    <script src="player.js"></script>
-</body>
-</html>
-
+    // Экспорт функций, которые могут понадобиться извне
+    window.indexFunctions = {
+        updateVideoList,
+        displayVideos
+    };
+})();
 
 File: pages\player.js
 Content:
