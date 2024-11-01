@@ -6,7 +6,6 @@ const fetch = require('node-fetch');
 const ffmetadata = require("ffmetadata");
 const util = require('util');
 
-const { ffmpeg } = require('./ffmpeg-config');
 
 
 class VideoDownloader {

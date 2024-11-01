@@ -18,9 +18,10 @@ let startupVideoPath = null;
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-
-
-const defaultThumbPath =path.join(process.execPath, '..', 'default-thumbnail.jpg');
+let defaultThumbPath;
+if(isDevelopment)
+    defaultThumbPath  = './default-thumbnail.jpg';
+else defaultThumbPath = path.join(process.resourcesPath, 'default-thumbnail.jpg');
 
 const thumbsDir = path.join(app.getPath('userData'), 'thumbnails');
 

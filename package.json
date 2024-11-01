@@ -21,8 +21,7 @@
   ],
   "scripts": {
     "start": "set NODE_ENV=development&& electron .",
-    "build": "set NODE_ENV=production&& electron-builder --win --x64",
-    "build:mac": "set NODE_ENV=production&& electron-builder --mac --universal"
+    "build": "set NODE_ENV=production&& electron-builder --win --x64"
   },
   "keywords": [],
   "license": "ISC",
@@ -47,65 +46,69 @@
     "winreg": "^1.2.5"
   },
   "build": {
-  "appId": "com.localtube.app",
-  "productName": "LocalTube",
-  "directories": {
-    "output": "dist"
-  },
-  "win": {
-    "target": [
-      {
-        "target": "nsis",
-        "arch": ["x64"]
-      }
-    ],
-    "icon": "./assets/icon.ico"
-  },
-  "mac": {
-    "target": [
-      {
-        "target": "dmg",
-        "arch": ["x64", "arm64"]
-      }
-    ],
-    "icon": "./assets/icon.icns",
-    "category": "public.app-category.video",
-    "darkModeSupport": true
-  },
-  "asar": true,
-  "asarUnpack": [
-    "downloads/**/*",
-    "node_modules/ffmpeg-static/**/*",
-    "node_modules/ffprobe-static/**/*"
-  ],
-  "files": [
-    "**/*",
-    "!downloads/**/*",
-    "!dist/**/*",
-    "!build/**/*"
-  ],
-  "nsis": {
-    "oneClick": false,
-    "allowToChangeInstallationDirectory": true,
-    "createDesktopShortcut": true,
-    "createStartMenuShortcut": true,  
-    "shortcutName": "LocalTube",
-    "uninstallDisplayName": "LocalTube", 
-    "deleteAppDataOnUninstall": false
-  },
-  "extraResources": [
-    {
-      "from": "node_modules/ffmpeg-static/ffmpeg.exe",
-      "to": "ffmpeg.exe"
+    "appId": "com.localtube.app",
+    "productName": "LocalTube",
+    "directories": {
+      "output": "dist"
     },
-    {
-      "from": "node_modules/ffprobe-static/bin/${platform === 'win32' ? 'win32/x64/ffprobe.exe' : 'darwin/x64/ffprobe'}",
-      "to": "${platform === 'win32' ? 'ffprobe.exe' : 'ffprobe'}"
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "./assets/icon.ico"
     },
-    {
-      "from": "assets/",
-      "to": "assets/"
-    }
-  ]
-}
+    "asar": true,
+    "asarUnpack": [
+      "downloads/**/*",
+      "node_modules/ffmpeg-static/**/*",
+      "node_modules/ffprobe-static/**/*"
+    ],
+    "files": [
+      "**/*",
+      "!downloads/**/*",
+      "!dist/**/*",
+      "!build/**/*"
+    ],
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,  
+      "shortcutName": "LocalTube",
+      "uninstallDisplayName": "LocalTube", 
+      "deleteAppDataOnUninstall": false
+    },
+    "msi": {
+      "oneClick": false,
+      "perMachine": true,
+      "additionalWixArgs": [
+        "-preserve", "downloads"
+      ]
+    },
+    "extraResources": [
+      {
+        "from": "node_modules/ffmpeg-static/ffmpeg.exe",
+        "to": "ffmpeg.exe"
+      },
+      {
+        "from": "node_modules/ffprobe-static/bin/win32/x64/ffprobe.exe",
+        "to": "ffprobe.exe"
+      },
+      {
+        "from": "assets/",
+        "to": "assets/"
+      },
+      {
+        "from": "assets/icon.ico",
+        "to": "assets/icon.ico"
+      },
+      {
+        "from": "default-thumbnail.jpg",
+        "to": "default-thumbnail.jpg"
+      }
+    ]
+  }
 }

@@ -19,13 +19,8 @@ if (isDevelopment) {
     ffprobe = require('ffprobe-static');
     console.log('DEV');
 } else {
-    if (process.platform === 'win32') {
-        ffmpeg.setFfmpegPath(path.join(process.resourcesPath, 'ffmpeg.exe'));
-        ffmpeg.setFfprobePath(path.join(process.resourcesPath, 'ffprobe.exe'));
-    } else {
-        ffmpeg.setFfmpegPath(path.join(process.resourcesPath, 'ffmpeg'));
-        ffmpeg.setFfprobePath(path.join(process.resourcesPath, 'ffprobe'));
-    }
+    ffmpeg.setFfmpegPath(path.join(process.resourcesPath, 'ffmpeg.exe'));
+    ffmpeg.setFfprobePath(path.join(process.resourcesPath, 'ffprobe.exe'));
     console.log('PROD');
 }
 
