@@ -11,6 +11,8 @@ jobs:
   build:
     name: Build (macOS)
     runs-on: macos-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout repository
