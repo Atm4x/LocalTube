@@ -1,0 +1,47 @@
+# .github/workflows/build.yml
+name: Build
+on:
+  push:
+    branches:
+      - vasysik  # Указываем вашу ветку
+  pull_request:
+    branches:
+      - vasysik
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Windows
+        if: matrix.os == 'windows-latest'
+        run: npm run build
+        
+      - name: Build MacOS
+        if: matrix.os == 'macos-latest'
+        run: npm run build:mac
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.os }}-build
+          path: |
+            dist/*.exe
+            dist/*.dmg
+          if-no-files-found: ignore
